@@ -83,8 +83,21 @@ img.thumb{cursor:zoom-in}
 #picker{position:fixed;inset:0;background:var(--bg);z-index:15;display:flex;flex-direction:column}
 #picker .top{padding:12px;background:#fff;border-bottom:1px solid var(--bd);display:flex;gap:8px;align-items:center}
 #picker .top .b{padding:11px 14px;flex:none}
-#pkGrid{flex:1;overflow:auto;padding:12px;display:grid;grid-template-columns:repeat(2,1fr);gap:10px;align-content:start}
-@media(min-width:620px){#pkGrid{grid-template-columns:repeat(4,1fr)}}
+#pkGrid{flex:1;overflow:auto;padding:12px}
+#pkGrid .lst{background:#fff;border:1px solid var(--bd);border-radius:16px;overflow:hidden;box-shadow:var(--sh)}
+.ac{position:relative}
+.ac input{padding-left:40px}
+.ac .ic{position:absolute;left:13px;top:13px;font-size:16px;pointer-events:none}
+.sug{position:absolute;left:0;right:0;top:calc(100% + 4px);background:#fff;border:1.5px solid var(--bd);border-radius:14px;box-shadow:0 12px 30px rgba(46,16,101,.18);z-index:8;max-height:340px;overflow:auto}
+.sr{display:flex;align-items:center;gap:10px;padding:9px 12px;border:0;border-bottom:1px solid var(--bd);cursor:pointer;width:100%;background:#fff;font-family:inherit;text-align:left;color:var(--tx);font-size:14px}
+.sr:last-child{border-bottom:0}
+.sr:active,.sr.hl{background:#f5f0ff}
+.sr .thumb{width:42px;height:42px;font-size:16px;border-radius:10px}
+.sr .m{flex:1;min-width:0}.sr .t{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.sr .s{font-size:12px;color:var(--mut)}
+.sr .r{text-align:right;font-weight:700;font-size:13.5px;color:var(--pri);white-space:nowrap}.sr .r small{display:block;font-weight:500;font-size:11.5px;color:var(--mut)}
+.sr mark{background:#ede9fe;color:var(--pri);border-radius:4px;padding:0 1px}
+.sr .neg{color:var(--bad)!important}
+.vertodos{background:none;border:0;color:var(--pri);font-family:inherit;font-weight:600;font-size:13px;padding:6px 2px;cursor:pointer}
 .pc{display:flex;flex-direction:column;justify-content:flex-start;align-items:stretch;background:#fff;border:1.5px solid var(--bd);border-radius:16px;overflow:hidden;text-align:left;padding:0;font-family:inherit;color:var(--tx);box-shadow:var(--sh);cursor:pointer}
 .pc:active{border-color:var(--pri2)}
 .pc .ph{aspect-ratio:1/1;width:100%;object-fit:cover;display:grid;place-items:center;background:var(--pri3);color:var(--pri);font-size:38px;font-weight:700}
@@ -152,7 +165,10 @@ img.thumb{cursor:zoom-in}
   <div class="card">
     <h2>💵 Registrar venta</h2>
     <form class="f" id="vForm">
-      <div class="full"><label>Producto *</label><input type="hidden" id="vPro"><button type="button" class="pick" id="vProBtn" onclick="openPicker('vPro')"></button></div>
+      <div class="full"><label>Producto *</label><input type="hidden" id="vPro">
+        <div class="ac" id="vProAc"><span class="ic">🔎</span><input id="vProQ" placeholder="Escribe el producto… (ej: pin)" autocomplete="off" autocapitalize="off" spellcheck="false"><div class="sug hide" id="vProSug"></div></div>
+        <button type="button" class="pick hide" id="vProBtn" onclick="quitarSel('vPro')"></button>
+        <button type="button" class="vertodos" onclick="openPicker('vPro')">📋 Ver todos los productos</button></div>
       <div><label>Cantidad *</label><input id="vCan" type="number" inputmode="numeric" min="1" step="1" value="1" required></div>
       <div><label>Precio c/u *</label><input id="vPre" type="number" inputmode="decimal" min="0" step="any" required></div>
       <div class="full"><label>Fecha</label><input id="vFec" type="date" required></div>
@@ -169,7 +185,10 @@ img.thumb{cursor:zoom-in}
   <div class="card">
     <h2>🛒 Registrar compra / reposición</h2>
     <form class="f" id="cForm">
-      <div class="full"><label>Producto *</label><input type="hidden" id="cPro"><button type="button" class="pick" id="cProBtn" onclick="openPicker('cPro')"></button></div>
+      <div class="full"><label>Producto *</label><input type="hidden" id="cPro">
+        <div class="ac" id="cProAc"><span class="ic">🔎</span><input id="cProQ" placeholder="Escribe el producto… (ej: pin)" autocomplete="off" autocapitalize="off" spellcheck="false"><div class="sug hide" id="cProSug"></div></div>
+        <button type="button" class="pick hide" id="cProBtn" onclick="quitarSel('cPro')"></button>
+        <button type="button" class="vertodos" onclick="openPicker('cPro')">📋 Ver todos los productos</button></div>
       <div><label>Cantidad *</label><input id="cCan" type="number" inputmode="numeric" min="1" step="1" required></div>
       <div><label>Costo c/u *</label><input id="cCos" type="number" inputmode="decimal" min="0" step="any" required></div>
       <div class="full"><label>Fecha</label><input id="cFec" type="date" required></div>
@@ -235,7 +254,7 @@ img.thumb{cursor:zoom-in}
 </section>
 </main>
 
-<button class="fab" id="fab" onclick="go('ventas');if(!prod($('vPro').value))openPicker('vPro')">+ Vender</button>
+<button class="fab" id="fab" onclick="go('ventas');if(!prod($('vPro').value))$('vProQ').focus()">+ Vender</button>
 
 <nav id="nav">
   <button data-t="resumen" class="on"><b>📊</b>Resumen</button>
@@ -247,7 +266,7 @@ img.thumb{cursor:zoom-in}
 
 <div id="modal" class="hide"><div class="box"><p id="mMsg"></p><input id="mIn" class="hide" style="margin-bottom:12px"><div class="row" style="justify-content:flex-end"><button class="b g" id="mNo">Cancelar</button><button class="b" id="mOk">Aceptar</button></div></div></div>
 <div id="toast" class="hide"></div>
-<div id="picker" class="hide"><div class="top"><input id="pkBus" placeholder="🔎 Buscar producto…" oninput="renderPicker()"><button class="b g" onclick="cerrarPicker()">Cerrar</button></div><div id="pkGrid"></div></div>
+<div id="picker" class="hide"><div class="top"><input id="pkBus" placeholder="🔎 Escribe para buscar…" oninput="renderPicker()" autocomplete="off"><button class="b g" onclick="cerrarPicker()">Cerrar</button></div><div id="pkGrid"></div></div>
 <div id="zoom" class="hide" onclick="this.classList.add('hide')"><img id="zoomImg" alt=""></div>
 
 <script>
@@ -331,19 +350,50 @@ function ini(n){return esc((String(n||'?').trim()[0]||'?').toUpperCase())}
 function thumb(pid,nombre,cls='thumb'){const f=FOTOS[pid];return f?`<img class="${cls}" src="${f}" alt="" onclick="event.stopPropagation();verFoto('${pid}')">`:`<div class="${cls}">${ini(nombre)}</div>`}
 function verFoto(pid){if(!FOTOS[pid])return;$('zoomImg').src=FOTOS[pid];$('zoom').classList.remove('hide')}
 
-// ================= Selector visual de productos =================
+// ================= Buscador de productos (lista + autocompletado) =================
+const norm=x=>String(x||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
+function buscar(q){q=norm(q).trim();const L=[...D.productos];
+  if(!q)return L.sort((a,b)=>a.nombre.localeCompare(b.nombre));
+  return L.map(p=>{const n=norm(p.nombre),c=norm(p.categoria);
+      const sc=n.startsWith(q)?0:n.split(/\s+/).some(w=>w.startsWith(q))?1:n.includes(q)?2:c.includes(q)?3:9;return{p,sc}})
+    .filter(x=>x.sc<9).sort((a,b)=>a.sc-b.sc||a.p.nombre.localeCompare(b.p.nombre)).map(x=>x.p)}
+function marcar(nombre,q){const e=esc(nombre);q=(q||'').trim();if(!q)return e;
+  const nn=[...nombre].map(ch=>norm(ch)[0]||ch).join(''),i=nn.indexOf(norm(q));if(i<0)return e;
+  return esc(nombre.slice(0,i))+'<mark>'+esc(nombre.slice(i,i+q.length))+'</mark>'+esc(nombre.slice(i+q.length))}
+function thumbS(p){return FOTOS[p.id]?`<img class="thumb" src="${FOTOS[p.id]}" alt="">`:`<div class="thumb">${ini(p.nombre)}</div>`}
+function filaProd(p,q,on){return `<button type="button" class="sr" onpointerdown="event.preventDefault()" onclick="${on}('${p.id}')">${thumbS(p)}
+  <div class="m"><div class="t">${marcar(p.nombre,q)}</div><div class="s">${esc(p.categoria||'')}</div></div>
+  <div class="r">${money(p.precio)}<small class="${p.stock<=p.minimo?'neg':''}">${p.stock} und</small></div></button>`}
+// Autocompletado en el formulario
+let acHl={};
+function renderSug(t){const q=$(t+'Q').value,box=$(t+'Sug');
+  if(!q.trim()){box.classList.add('hide');return}
+  const L=buscar(q).slice(0,8);acHl[t]=0;
+  box.innerHTML=L.length?L.map(p=>filaProd(p,q,`selAc_${t}`)).join(''):`<div class="empty" style="padding:14px">No hay productos con “${esc(q)}”</div>`;
+  box.classList.remove('hide');marcarHl(t)}
+function marcarHl(t){[...$(t+'Sug').querySelectorAll('.sr')].forEach((el,i)=>el.classList.toggle('hl',i===acHl[t]))}
+function setSel(t,id){$(t).value=id;$(t+'Q').value='';$(t+'Sug').classList.add('hide');pickBtn(t);const h=$(t).onchange;if(h)h()}
+window.selAc_vPro=id=>setSel('vPro',id);window.selAc_cPro=id=>setSel('cPro',id);
+function quitarSel(t){$(t).value='';pickBtn(t);const h=$(t).onchange;if(h)h();setTimeout(()=>$(t+'Q').focus(),30)}
+['vPro','cPro'].forEach(t=>{const q=$(t+'Q');
+  q.oninput=()=>renderSug(t);q.onfocus=()=>renderSug(t);
+  q.onblur=()=>setTimeout(()=>$(t+'Sug').classList.add('hide'),150);
+  q.onkeydown=e=>{const rows=$(t+'Sug').querySelectorAll('.sr');
+    if(e.key==='ArrowDown'){e.preventDefault();acHl[t]=Math.min((acHl[t]||0)+1,rows.length-1);marcarHl(t)}
+    else if(e.key==='ArrowUp'){e.preventDefault();acHl[t]=Math.max((acHl[t]||0)-1,0);marcarHl(t)}
+    else if(e.key==='Enter'){e.preventDefault();if(rows.length)rows[acHl[t]||0].click()}
+    else if(e.key==='Escape')$(t+'Sug').classList.add('hide')}});
+// Lista completa (pantalla aparte)
 let pkTarget=null;
-function openPicker(t){pkTarget=t;$('pkBus').value='';renderPicker();$('picker').classList.remove('hide')}
+function openPicker(t){pkTarget=t;$('pkBus').value='';renderPicker();$('picker').classList.remove('hide');setTimeout(()=>$('pkBus').focus(),60)}
 function cerrarPicker(){$('picker').classList.add('hide');pkTarget=null}
-function renderPicker(){if(!pkTarget)return;const q=$('pkBus').value.toLowerCase();
-  const L=D.productos.filter(p=>(p.nombre+' '+(p.categoria||'')).toLowerCase().includes(q)).sort((a,b)=>a.nombre.localeCompare(b.nombre));
-  $('pkGrid').innerHTML=L.map(p=>`<button class="pc" onclick="elegir('${p.id}')">${FOTOS[p.id]?`<img class="ph" src="${FOTOS[p.id]}" alt="">`:`<div class="ph">${ini(p.nombre)}</div>`}
-    <div class="in"><div class="nm">${esc(p.nombre)}</div><div class="pr"><b>${money(p.precio)}</b><span class="${p.stock<=p.minimo?'neg':''}">${p.stock} und</span></div></div></button>`).join('')
-    ||`<div class="empty" style="grid-column:1/-1"><b>📦</b>${D.productos.length?'No hay productos con ese nombre.':'Aún no tienes productos.'}<br><br><button class="b" onclick="cerrarPicker();go('productos')">Crear producto</button></div>`}
-function elegir(id){const t=pkTarget;$(t).value=id;cerrarPicker();pickBtn(t);const h=$(t).onchange;if(h)h()}
+function renderPicker(){if(!pkTarget)return;const q=$('pkBus').value;const L=buscar(q);
+  $('pkGrid').innerHTML=L.length?`<div class="lst">${L.map(p=>filaProd(p,q,'elegir')).join('')}</div>`
+    :`<div class="empty"><b>📦</b>${D.productos.length?'No hay productos con ese nombre.':'Aún no tienes productos.'}<br><br><button class="b" onclick="cerrarPicker();go('productos')">Crear producto</button></div>`}
+function elegir(id){const t=pkTarget;cerrarPicker();setSel(t,id)}
 function pickBtn(t){const p=prod($(t).value);if(!p)$(t).value='';
-  $(t+'Btn').innerHTML=p?`${thumb(p.id,p.nombre)}<div class="m"><div class="t">${esc(p.nombre)}</div><div class="s">${money(p.precio)} · quedan ${p.stock}</div></div><span class="go">Cambiar ›</span>`
-   :`<div class="thumb">＋</div><div class="m"><div class="t">Elegir producto</div><div class="s">Toca para ver los productos con foto</div></div><span class="go">›</span>`}
+  $(t+'Ac').classList.toggle('hide',!!p);$(t+'Btn').classList.toggle('hide',!p);
+  $(t+'Btn').innerHTML=p?`${thumb(p.id,p.nombre)}<div class="m"><div class="t">${esc(p.nombre)}</div><div class="s">${money(p.precio)} · quedan ${p.stock}</div></div><span class="go">Cambiar ✕</span>`:''}
 
 // ================= Navegación =================
 function go(t){document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
@@ -391,11 +441,11 @@ function renderProductos(){const q=$('pBus').value.toLowerCase();
 const calcC=()=>$('cInfo').textContent='Total: '+money((+$('cCan').value||0)*(+$('cCos').value||0));
 $('cCan').oninput=$('cCos').oninput=calcC;
 $('cPro').onchange=()=>{const p=prod($('cPro').value);if(p)$('cCos').value=Math.round(p.costo*100)/100;calcC()};
-$('cForm').onsubmit=async e=>{e.preventDefault();const p=prod($('cPro').value);if(!p){toast('Elige un producto');openPicker('cPro');return}
+$('cForm').onsubmit=async e=>{e.preventDefault();const p=prod($('cPro').value);if(!p){toast('Escribe y elige un producto');$('cProQ').focus();return}
   const q=+$('cCan').value,c=+$('cCos').value,tot=p.stock+q;
   const np={...p,stock:tot,costo:tot>0?(p.stock*p.costo+q*c)/tot:c};
   const compra={id:newId(),fecha:$('cFec').value,pid:p.id,nombre:p.nombre,cantidad:q,costo:c,total:q*c,nota:$('cNot').value};
-  $('cForm').reset();$('cPro').value='';$('cFec').value=today();calcC();
+  $('cForm').reset();$('cPro').value='';pickBtn('cPro');$('cFec').value=today();calcC();
   try{await put('productos',np);await put('compras',compra);toast('Compra registrada ✔')}catch(e){}};
 async function delC(id){const c=D.compras.find(x=>x.id===id);
   if(!await ask(`¿Anular esta compra?\nSe descontarán ${c.cantidad} unidades del stock.`,{ok:'Anular',danger:true}))return;
@@ -407,10 +457,10 @@ function calcV(){const p=prod($('vPro').value);if(!p){$('vGan').textContent='Eli
   $('vGan').innerHTML=`Cobras <b>${money(pr*q)}</b> · ganas <b class="${g<0?'neg':'pos'}">${money(g)}</b> (${pct(margen(p.costo,pr))})<br><span class="hint">Quedan ${p.stock} en stock</span>`}
 $('vPro').onchange=()=>{const p=prod($('vPro').value);if(p)$('vPre').value=p.precio;calcV()};
 $('vCan').oninput=$('vPre').oninput=calcV;
-$('vForm').onsubmit=async e=>{e.preventDefault();const p=prod($('vPro').value);if(!p){toast('Elige un producto');openPicker('vPro');return}const q=+$('vCan').value,pr=+$('vPre').value;
+$('vForm').onsubmit=async e=>{e.preventDefault();const p=prod($('vPro').value);if(!p){toast('Escribe y elige un producto');$('vProQ').focus();return}const q=+$('vCan').value,pr=+$('vPre').value;
   if(q>p.stock&&!await ask(`Solo tienes ${p.stock} de "${p.nombre}" en stock. ¿Registrar la venta de todos modos?`,{ok:'Registrar'}))return;
   const venta={id:newId(),fecha:$('vFec').value,pid:p.id,nombre:p.nombre,cantidad:q,precio:pr,costo:p.costo,total:q*pr,ganancia:q*(pr-p.costo),nota:$('vNot').value};
-  $('vForm').reset();$('vPro').value='';$('vFec').value=today();$('vCan').value=1;calcV();
+  $('vForm').reset();$('vPro').value='';pickBtn('vPro');$('vFec').value=today();$('vCan').value=1;calcV();
   try{await put('productos',{...p,stock:Math.max(0,p.stock-q)});await put('ventas',venta);toast(`Venta registrada ✔ Ganaste ${money(venta.ganancia)}`)}catch(e){}};
 async function delV(id){const v=D.ventas.find(x=>x.id===id);
   if(!await ask(`¿Anular esta venta?\nSe devolverán ${v.cantidad} unidades al stock.`,{ok:'Anular',danger:true}))return;
