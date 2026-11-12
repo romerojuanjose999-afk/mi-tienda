@@ -68,6 +68,26 @@ input:focus,select:focus{outline:0;border-color:var(--pri2);background:#fff;box-
 #modal p{margin:0 0 14px;white-space:pre-line;font-size:15px}
 #toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:#2e1065;color:#fff;padding:11px 18px;border-radius:24px;font-size:14px;z-index:30;max-width:90%;text-align:center;box-shadow:0 6px 20px rgba(46,16,101,.3)}
 .fab{position:fixed;right:16px;bottom:90px;background:linear-gradient(135deg,#7c3aed,#c026d3);color:#fff;border:0;border-radius:30px;padding:14px 22px;font-size:15px;font-weight:600;font-family:inherit;box-shadow:0 8px 22px rgba(124,58,237,.4);z-index:6}
+.pick{width:100%;display:flex;align-items:center;gap:12px;padding:10px 12px;border:1.5px solid var(--bd);border-radius:14px;background:#fbf9fe;font-family:inherit;text-align:left;color:var(--tx);font-size:15px;cursor:pointer}
+.pick .m{flex:1;min-width:0}.pick .t{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.pick .s{font-size:12.5px;color:var(--mut)}.pick .go{color:var(--pri);font-size:13px;font-weight:600;white-space:nowrap}
+.thumb{width:48px;height:48px;border-radius:12px;object-fit:cover;flex:none;background:var(--pri3);display:grid;place-items:center;color:var(--pri);font-weight:700;font-size:18px}
+.thumb.lg{width:66px;height:66px;border-radius:14px;font-size:24px}
+img.thumb{cursor:zoom-in}
+#picker{position:fixed;inset:0;background:var(--bg);z-index:15;display:flex;flex-direction:column}
+#picker .top{padding:12px;background:#fff;border-bottom:1px solid var(--bd);display:flex;gap:8px;align-items:center}
+#picker .top .b{padding:11px 14px;flex:none}
+#pkGrid{flex:1;overflow:auto;padding:12px;display:grid;grid-template-columns:repeat(2,1fr);gap:10px;align-content:start}
+@media(min-width:620px){#pkGrid{grid-template-columns:repeat(4,1fr)}}
+.pc{display:flex;flex-direction:column;justify-content:flex-start;align-items:stretch;background:#fff;border:1.5px solid var(--bd);border-radius:16px;overflow:hidden;text-align:left;padding:0;font-family:inherit;color:var(--tx);box-shadow:var(--sh);cursor:pointer}
+.pc:active{border-color:var(--pri2)}
+.pc .ph{aspect-ratio:1/1;width:100%;object-fit:cover;display:grid;place-items:center;background:var(--pri3);color:var(--pri);font-size:38px;font-weight:700}
+.pc .in{padding:8px 10px 10px}.pc .nm{font-weight:600;font-size:13.5px;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.pc .pr{display:flex;justify-content:space-between;align-items:center;margin-top:4px;font-size:13px}.pc .pr b{color:var(--pri)}
+.fotoBox{display:flex;align-items:center;gap:12px}
+.fotoBox .prev{width:88px;height:88px;border-radius:16px;background:var(--pri3);display:grid;place-items:center;font-size:30px;overflow:hidden;flex:none;border:1.5px dashed #d8c8f5}
+.fotoBox .prev img{width:100%;height:100%;object-fit:cover}
+#zoom{position:fixed;inset:0;background:rgba(20,8,40,.88);z-index:25;display:grid;place-items:center;padding:20px}
+#zoom img{max-width:100%;max-height:85vh;border-radius:16px}
 .empty{text-align:center;color:var(--mut);padding:18px 6px;font-size:13.5px}
 .empty b{display:block;font-size:30px;margin-bottom:4px}
 </style>
@@ -106,6 +126,9 @@ input:focus,select:focus{outline:0;border-color:var(--pri2);background:#fff;box-
       <div><label>Precio venta *</label><input id="pPre" type="number" inputmode="decimal" min="0" step="any" required></div>
       <div><label id="pStkL">Stock inicial</label><input id="pStk" type="number" inputmode="numeric" min="0" step="1" value="0"></div>
       <div><label>Avisar si quedan ≤</label><input id="pMin" type="number" inputmode="numeric" min="0" step="1" value="2"></div>
+      <div class="full"><label>Foto del producto</label><div class="fotoBox"><div class="prev" id="pFotoPrev">📷</div>
+        <div><label class="b g" style="margin:0 0 6px;display:inline-block;color:var(--pri)">📷 Tomar o elegir foto<input type="file" accept="image/*" id="pFotoIn" class="hide"></label><br>
+        <button type="button" class="x" id="pFotoDel">Quitar foto</button></div></div></div>
       <div class="full calc" id="pMar">Escribe costo y precio para ver el margen.</div>
       <button class="b" type="submit">Guardar</button><button class="b g" type="button" onclick="resetP()">Limpiar</button>
     </form>
@@ -122,7 +145,7 @@ input:focus,select:focus{outline:0;border-color:var(--pri2);background:#fff;box-
   <div class="card">
     <h2>💵 Registrar venta</h2>
     <form class="f" id="vForm">
-      <div class="full"><label>Producto *</label><select id="vPro" required></select></div>
+      <div class="full"><label>Producto *</label><input type="hidden" id="vPro"><button type="button" class="pick" id="vProBtn" onclick="openPicker('vPro')"></button></div>
       <div><label>Cantidad *</label><input id="vCan" type="number" inputmode="numeric" min="1" step="1" value="1" required></div>
       <div><label>Precio c/u *</label><input id="vPre" type="number" inputmode="decimal" min="0" step="any" required></div>
       <div><label>Fecha</label><input id="vFec" type="date" required></div>
@@ -139,7 +162,7 @@ input:focus,select:focus{outline:0;border-color:var(--pri2);background:#fff;box-
   <div class="card">
     <h2>🛒 Registrar compra / reposición</h2>
     <form class="f" id="cForm">
-      <div class="full"><label>Producto *</label><select id="cPro" required></select></div>
+      <div class="full"><label>Producto *</label><input type="hidden" id="cPro"><button type="button" class="pick" id="cProBtn" onclick="openPicker('cPro')"></button></div>
       <div><label>Cantidad *</label><input id="cCan" type="number" inputmode="numeric" min="1" step="1" required></div>
       <div><label>Costo c/u *</label><input id="cCos" type="number" inputmode="decimal" min="0" step="any" required></div>
       <div><label>Fecha</label><input id="cFec" type="date" required></div>
@@ -205,7 +228,7 @@ input:focus,select:focus{outline:0;border-color:var(--pri2);background:#fff;box-
 </section>
 </main>
 
-<button class="fab" id="fab" onclick="go('ventas');setTimeout(()=>$('vPro').focus(),50)">+ Vender</button>
+<button class="fab" id="fab" onclick="go('ventas');if(!prod($('vPro').value))openPicker('vPro')">+ Vender</button>
 
 <nav id="nav">
   <button data-t="resumen" class="on"><b>📊</b>Resumen</button>
@@ -217,6 +240,8 @@ input:focus,select:focus{outline:0;border-color:var(--pri2);background:#fff;box-
 
 <div id="modal" class="hide"><div class="box"><p id="mMsg"></p><input id="mIn" class="hide" style="margin-bottom:12px"><div class="row" style="justify-content:flex-end"><button class="b g" id="mNo">Cancelar</button><button class="b" id="mOk">Aceptar</button></div></div></div>
 <div id="toast" class="hide"></div>
+<div id="picker" class="hide"><div class="top"><input id="pkBus" placeholder="🔎 Buscar producto…" oninput="renderPicker()"><button class="b g" onclick="cerrarPicker()">Cerrar</button></div><div id="pkGrid"></div></div>
+<div id="zoom" class="hide" onclick="this.classList.add('hide')"><img id="zoomImg" alt=""></div>
 
 <script>
 // ================= Utilidades =================
@@ -283,6 +308,36 @@ function setEstado(t){$('estado').textContent=t;
   $('dondeTxt').innerHTML=modo==='nube'?'Tus datos se guardan en tu cuenta de Claude, no en el navegador. Aunque borres el historial o cambies de celular, al abrir este mismo link con tu cuenta vuelven a aparecer.'
    :modo==='local'?'Tus datos se guardan en este celular. <b>Si borras los datos de navegación de Chrome (cookies y datos de sitios) se borran.</b> Por eso guarda una copia cada semana en Google Drive o WhatsApp con el botón de abajo.':'Conectando…'}
 
+// ================= Fotos (IndexedDB, en el celular) =================
+let FOTOS={};
+const IDB=new Promise((res,rej)=>{try{const r=indexedDB.open('inv_fotos',1);r.onupgradeneeded=()=>r.result.createObjectStore('f');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}});
+async function idb(mode,fn){const db=await IDB;return new Promise((res,rej)=>{const tx=db.transaction('f',mode);fn(tx.objectStore('f'));tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error)})}
+async function fotoSet(id,d){FOTOS[id]=d;try{await idb('readwrite',s=>s.put(d,id))}catch(e){toast('No se pudo guardar la foto (memoria llena)')}}
+async function fotoDel(id){delete FOTOS[id];try{await idb('readwrite',s=>s.delete(id))}catch(e){}}
+async function fotosClear(){FOTOS={};try{await idb('readwrite',s=>s.clear())}catch(e){}}
+async function cargarFotos(){try{await idb('readonly',s=>{const q=s.openCursor();q.onsuccess=()=>{const c=q.result;if(c){FOTOS[c.key]=c.value;c.continue()}}})}catch(e){}render()}
+function comprimir(file){return new Promise((res,rej)=>{const img=new Image(),u=URL.createObjectURL(file);
+  img.onload=()=>{const M=520,k=Math.min(1,M/Math.max(img.width,img.height)),w=Math.round(img.width*k),h=Math.round(img.height*k);
+    const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,w,h);x.drawImage(img,0,0,w,h);URL.revokeObjectURL(u);res(c.toDataURL('image/jpeg',.78))};
+  img.onerror=()=>{URL.revokeObjectURL(u);rej()};img.src=u})}
+function ini(n){return esc((String(n||'?').trim()[0]||'?').toUpperCase())}
+function thumb(pid,nombre,cls='thumb'){const f=FOTOS[pid];return f?`<img class="${cls}" src="${f}" alt="" onclick="event.stopPropagation();verFoto('${pid}')">`:`<div class="${cls}">${ini(nombre)}</div>`}
+function verFoto(pid){if(!FOTOS[pid])return;$('zoomImg').src=FOTOS[pid];$('zoom').classList.remove('hide')}
+
+// ================= Selector visual de productos =================
+let pkTarget=null;
+function openPicker(t){pkTarget=t;$('pkBus').value='';renderPicker();$('picker').classList.remove('hide')}
+function cerrarPicker(){$('picker').classList.add('hide');pkTarget=null}
+function renderPicker(){if(!pkTarget)return;const q=$('pkBus').value.toLowerCase();
+  const L=D.productos.filter(p=>(p.nombre+' '+(p.categoria||'')).toLowerCase().includes(q)).sort((a,b)=>a.nombre.localeCompare(b.nombre));
+  $('pkGrid').innerHTML=L.map(p=>`<button class="pc" onclick="elegir('${p.id}')">${FOTOS[p.id]?`<img class="ph" src="${FOTOS[p.id]}" alt="">`:`<div class="ph">${ini(p.nombre)}</div>`}
+    <div class="in"><div class="nm">${esc(p.nombre)}</div><div class="pr"><b>${money(p.precio)}</b><span class="${p.stock<=p.minimo?'neg':''}">${p.stock} und</span></div></div></button>`).join('')
+    ||`<div class="empty" style="grid-column:1/-1"><b>📦</b>${D.productos.length?'No hay productos con ese nombre.':'Aún no tienes productos.'}<br><br><button class="b" onclick="cerrarPicker();go('productos')">Crear producto</button></div>`}
+function elegir(id){const t=pkTarget;$(t).value=id;cerrarPicker();pickBtn(t);const h=$(t).onchange;if(h)h()}
+function pickBtn(t){const p=prod($(t).value);if(!p)$(t).value='';
+  $(t+'Btn').innerHTML=p?`${thumb(p.id,p.nombre)}<div class="m"><div class="t">${esc(p.nombre)}</div><div class="s">${money(p.precio)} · quedan ${p.stock}</div></div><span class="go">Cambiar ›</span>`
+   :`<div class="thumb">＋</div><div class="m"><div class="t">Elegir producto</div><div class="s">Toca para ver los productos con foto</div></div><span class="go">›</span>`}
+
 // ================= Navegación =================
 function go(t){document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
   document.querySelectorAll('main>section').forEach(s=>s.classList.toggle('hide',s.id!=='t-'+t));
@@ -296,22 +351,29 @@ $('perChips').onclick=e=>{const b=e.target.closest('button');if(!b)return;period
 function calcPMar(){const c=+$('pCos').value,p=+$('pPre').value;
   $('pMar').innerHTML=p?`Margen: <b class="${margen(c,p)<0?'neg':'pos'}">${pct(margen(c,p))}</b> · ganas <b>${money(p-c)}</b> por unidad`:'Escribe costo y precio para ver el margen.'}
 $('pCos').oninput=$('pPre').oninput=calcPMar;
+let fotoPend;  // undefined = sin cambios, null = quitar, string = nueva
+function prevFoto(d){$('pFotoPrev').innerHTML=d?`<img src="${d}" alt="">`:'📷';$('pFotoDel').classList.toggle('hide',!d)}
+$('pFotoIn').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
+  try{fotoPend=await comprimir(f);prevFoto(fotoPend)}catch(_){toast('No se pudo leer la imagen')}};
+$('pFotoDel').onclick=()=>{fotoPend=null;prevFoto(null)};
 $('pForm').onsubmit=async e=>{e.preventDefault();const id=$('pId').value;
   const o={nombre:$('pNom').value.trim(),categoria:$('pCat').value.trim(),costo:+$('pCos').value,precio:+$('pPre').value,minimo:+$('pMin').value||0};
   const p=id?{...prod(id),...o}:{id:newId(),...o,stock:+$('pStk').value||0,creado:today()};
-  resetP();try{await put('productos',p);toast('Producto guardado ✔')}catch(e){}};
-function resetP(){$('pForm').reset();$('pId').value='';$('pTitle').textContent='Nuevo producto';$('pStk').disabled=false;$('pStkL').textContent='Stock inicial';calcPMar()}
+  const fp=fotoPend;resetP();
+  if(fp===null)await fotoDel(p.id);else if(fp)await fotoSet(p.id,fp);
+  try{await put('productos',p);toast('Producto guardado ✔')}catch(e){}};
+function resetP(){$('pForm').reset();$('pId').value='';$('pTitle').textContent='Nuevo producto';$('pStk').disabled=false;$('pStkL').textContent='Stock inicial';fotoPend=undefined;prevFoto(null);calcPMar()}
 function editP(id){const p=prod(id);go('productos');$('pId').value=id;$('pNom').value=p.nombre;$('pCat').value=p.categoria||'';$('pCos').value=Math.round(p.costo*100)/100;$('pPre').value=p.precio;
-  $('pStk').value=p.stock;$('pStk').disabled=true;$('pStkL').textContent='Stock (usa Ajustar)';$('pMin').value=p.minimo;$('pTitle').textContent='Editar: '+p.nombre;calcPMar()}
+  $('pStk').value=p.stock;$('pStk').disabled=true;$('pStkL').textContent='Stock (usa Ajustar)';$('pMin').value=p.minimo;$('pTitle').textContent='Editar: '+p.nombre;fotoPend=undefined;prevFoto(FOTOS[id]);calcPMar()}
 async function ajustarStock(id){const p=prod(id);const v=await ask(`Conteo físico de "${p.nombre}".\nStock actual en la app: ${p.stock}`,{input:String(p.stock),ok:'Guardar'});
   if(v===null||v===''||isNaN(v))return;await put('productos',{...p,stock:Math.max(0,parseInt(v))}).catch(()=>{})}
 async function delP(id){const p=prod(id);const mov=D.ventas.some(v=>v.pid===id)||D.compras.some(c=>c.pid===id);
   if(!await ask(mov?`"${p.nombre}" tiene ventas o compras. El historial se conserva, pero el producto se borra. ¿Continuar?`:`¿Borrar "${p.nombre}"?`,{ok:'Borrar',danger:true}))return;
-  await del('productos',id).catch(()=>{})}
+  await fotoDel(id);await del('productos',id).catch(()=>{})}
 function renderProductos(){const q=$('pBus').value.toLowerCase();
   const L=D.productos.filter(p=>(p.nombre+' '+(p.categoria||'')).toLowerCase().includes(q)).sort((a,b)=>a.nombre.localeCompare(b.nombre));
   $('pList').innerHTML=L.map(p=>{const m=margen(p.costo,p.precio);const low=p.stock<=p.minimo;
-    return `<div class="it" style="align-items:flex-start"><div class="av">${esc(p.nombre.trim()[0]||'?').toUpperCase()}</div><div class="m"><div class="t">${esc(p.nombre)}</div>
+    return `<div class="it" style="align-items:flex-start">${thumb(p.id,p.nombre,'thumb lg')}<div class="m"><div class="t">${esc(p.nombre)}</div>
       <div class="s">Costo ${money(p.costo)} → Venta ${money(p.precio)} · <span class="${m<0?'neg':m<.2?'wrn':'pos'}">${pct(m)}</span></div>
       <div class="s">Stock: <b>${p.stock}</b> ${low?'<span class="tag">bajo</span>':''} · invertido ${money(p.stock*p.costo)}</div>
       <div class="row" style="margin-top:6px"><button class="x" onclick="editP('${p.id}')">✏️ Editar</button><button class="x" onclick="ajustarStock('${p.id}')">🔢 Ajustar stock</button><button class="x" onclick="delP('${p.id}')">🗑</button></div></div></div>`}).join('')
@@ -322,11 +384,11 @@ function renderProductos(){const q=$('pBus').value.toLowerCase();
 const calcC=()=>$('cInfo').textContent='Total: '+money((+$('cCan').value||0)*(+$('cCos').value||0));
 $('cCan').oninput=$('cCos').oninput=calcC;
 $('cPro').onchange=()=>{const p=prod($('cPro').value);if(p)$('cCos').value=Math.round(p.costo*100)/100;calcC()};
-$('cForm').onsubmit=async e=>{e.preventDefault();const p=prod($('cPro').value);if(!p)return;
+$('cForm').onsubmit=async e=>{e.preventDefault();const p=prod($('cPro').value);if(!p){toast('Elige un producto');openPicker('cPro');return}
   const q=+$('cCan').value,c=+$('cCos').value,tot=p.stock+q;
   const np={...p,stock:tot,costo:tot>0?(p.stock*p.costo+q*c)/tot:c};
   const compra={id:newId(),fecha:$('cFec').value,pid:p.id,nombre:p.nombre,cantidad:q,costo:c,total:q*c,nota:$('cNot').value};
-  $('cForm').reset();$('cFec').value=today();calcC();
+  $('cForm').reset();$('cPro').value='';$('cFec').value=today();calcC();
   try{await put('productos',np);await put('compras',compra);toast('Compra registrada ✔')}catch(e){}};
 async function delC(id){const c=D.compras.find(x=>x.id===id);
   if(!await ask(`¿Anular esta compra?\nSe descontarán ${c.cantidad} unidades del stock.`,{ok:'Anular',danger:true}))return;
@@ -338,10 +400,10 @@ function calcV(){const p=prod($('vPro').value);if(!p){$('vGan').textContent='Eli
   $('vGan').innerHTML=`Cobras <b>${money(pr*q)}</b> · ganas <b class="${g<0?'neg':'pos'}">${money(g)}</b> (${pct(margen(p.costo,pr))})<br><span class="hint">Quedan ${p.stock} en stock</span>`}
 $('vPro').onchange=()=>{const p=prod($('vPro').value);if(p)$('vPre').value=p.precio;calcV()};
 $('vCan').oninput=$('vPre').oninput=calcV;
-$('vForm').onsubmit=async e=>{e.preventDefault();const p=prod($('vPro').value);if(!p)return;const q=+$('vCan').value,pr=+$('vPre').value;
+$('vForm').onsubmit=async e=>{e.preventDefault();const p=prod($('vPro').value);if(!p){toast('Elige un producto');openPicker('vPro');return}const q=+$('vCan').value,pr=+$('vPre').value;
   if(q>p.stock&&!await ask(`Solo tienes ${p.stock} de "${p.nombre}" en stock. ¿Registrar la venta de todos modos?`,{ok:'Registrar'}))return;
   const venta={id:newId(),fecha:$('vFec').value,pid:p.id,nombre:p.nombre,cantidad:q,precio:pr,costo:p.costo,total:q*pr,ganancia:q*(pr-p.costo),nota:$('vNot').value};
-  $('vForm').reset();$('vFec').value=today();$('vCan').value=1;calcV();
+  $('vForm').reset();$('vPro').value='';$('vFec').value=today();$('vCan').value=1;calcV();
   try{await put('productos',{...p,stock:Math.max(0,p.stock-q)});await put('ventas',venta);toast(`Venta registrada ✔ Ganaste ${money(venta.ganancia)}`)}catch(e){}};
 async function delV(id){const v=D.ventas.find(x=>x.id===id);
   if(!await ask(`¿Anular esta venta?\nSe devolverán ${v.cantidad} unidades al stock.`,{ok:'Anular',danger:true}))return;
@@ -366,17 +428,17 @@ function renderResumen(){
   $('kpis').innerHTML=`<div class="kpi big"><div class="l">Ganancia neta</div><div class="v ${neta<0?'neg':'pos'}">${money(neta)}</div><div class="l" style="margin-top:4px">ganancia de ventas ${money(gb)} − gastos ${money(gas)}</div></div>`+
    [['Ventas',money(ing),''],['Margen promedio',pct(ing?gb/ing:NaN),''],['Unidades vendidas',uds,''],['Compras mercancía',money(comp),''],
     ['Inventario (costo)',money(inv),''],['Ganancia por vender',money(pot-inv),'pos']].map(([l,v,c])=>`<div class="kpi"><div class="l">${l}</div><div class="v ${c}">${v}</div></div>`).join('');
-  const agg={};V.forEach(v=>{const a=agg[v.pid]||(agg[v.pid]={n:v.nombre,q:0,t:0,g:0});a.q+=v.cantidad;a.t+=v.total;a.g+=v.ganancia});
+  const agg={};V.forEach(v=>{const a=agg[v.pid]||(agg[v.pid]={id:v.pid,n:v.nombre,q:0,t:0,g:0});a.q+=v.cantidad;a.t+=v.total;a.g+=v.ganancia});
   const top=Object.values(agg).sort((a,b)=>b.g-a.g).slice(0,10);const mx=Math.max(1,...top.map(t=>t.g));
-  $('topList').innerHTML=top.map(t=>`<div class="it"><div class="m"><div class="t">${esc(t.n)}</div><div class="s">${t.q} vendidos · ${money(t.t)} · margen ${pct(t.g/t.t)}</div><div class="bar"><i style="width:${Math.max(0,t.g/mx*100)}%"></i></div></div><div class="r pos">${money(t.g)}</div></div>`).join('')||'<div class="empty"><b>💜</b>Sin ventas en este periodo.</div>';
+  $('topList').innerHTML=top.map(t=>`<div class="it">${thumb(t.id,t.n)}<div class="m"><div class="t">${esc(t.n)}</div><div class="s">${t.q} vendidos · ${money(t.t)} · margen ${pct(t.g/t.t)}</div><div class="bar"><i style="width:${Math.max(0,t.g/mx*100)}%"></i></div></div><div class="r pos">${money(t.g)}</div></div>`).join('')||'<div class="empty"><b>💜</b>Sin ventas en este periodo.</div>';
   const low=D.productos.filter(p=>p.stock<=p.minimo).sort((a,b)=>a.stock-b.stock);
-  $('lowList').innerHTML=low.map(p=>`<div class="it"><div class="m"><div class="t">${esc(p.nombre)}</div><div class="s">Aviso en ${p.minimo}</div></div><div class="r neg">${p.stock} und</div></div>`).join('')||'<div class="empty"><b>✨</b>Todo con buen stock.</div>'}
+  $('lowList').innerHTML=low.map(p=>`<div class="it">${thumb(p.id,p.nombre)}<div class="m"><div class="t">${esc(p.nombre)}</div><div class="s">Aviso en ${p.minimo}</div></div><div class="r neg">${p.stock} und</div></div>`).join('')||'<div class="empty"><b>✨</b>Todo con buen stock.</div>'}
 
 // ================= Historiales =================
 const byDate=(a,b)=>b.fecha.localeCompare(a.fecha)||(b.id>a.id?1:-1);
 function renderHist(){
-  $('vList').innerHTML=[...D.ventas].sort(byDate).slice(0,150).map(v=>`<div class="it"><div class="av">${esc(v.nombre.trim()[0]||'?').toUpperCase()}</div><div class="m"><div class="t">${esc(v.nombre)}</div><div class="s">${fDate(v.fecha)} · ${v.cantidad} × ${money(v.precio)}${v.nota?' · '+esc(v.nota):''}</div></div><div class="r">${money(v.total)}<small class="${v.ganancia<0?'neg':'pos'}">+${money(v.ganancia)}</small></div><button class="x" onclick="delV('${v.id}')">✕</button></div>`).join('')||'<div class="empty"><b>💵</b>Sin ventas todavía.</div>';
-  $('cList').innerHTML=[...D.compras].sort(byDate).slice(0,150).map(c=>`<div class="it"><div class="m"><div class="t">${esc(c.nombre)}</div><div class="s">${fDate(c.fecha)} · ${c.cantidad} × ${money(c.costo)}${c.nota?' · '+esc(c.nota):''}</div></div><div class="r">${money(c.total)}</div><button class="x" onclick="delC('${c.id}')">✕</button></div>`).join('')||'<div class="empty"><b>🛒</b>Sin compras todavía.</div>';
+  $('vList').innerHTML=[...D.ventas].sort(byDate).slice(0,150).map(v=>`<div class="it">${thumb(v.pid,v.nombre)}<div class="m"><div class="t">${esc(v.nombre)}</div><div class="s">${fDate(v.fecha)} · ${v.cantidad} × ${money(v.precio)}${v.nota?' · '+esc(v.nota):''}</div></div><div class="r">${money(v.total)}<small class="${v.ganancia<0?'neg':'pos'}">+${money(v.ganancia)}</small></div><button class="x" onclick="delV('${v.id}')">✕</button></div>`).join('')||'<div class="empty"><b>💵</b>Sin ventas todavía.</div>';
+  $('cList').innerHTML=[...D.compras].sort(byDate).slice(0,150).map(c=>`<div class="it">${thumb(c.pid,c.nombre)}<div class="m"><div class="t">${esc(c.nombre)}</div><div class="s">${fDate(c.fecha)} · ${c.cantidad} × ${money(c.costo)}${c.nota?' · '+esc(c.nota):''}</div></div><div class="r">${money(c.total)}</div><button class="x" onclick="delC('${c.id}')">✕</button></div>`).join('')||'<div class="empty"><b>🛒</b>Sin compras todavía.</div>';
   $('gList').innerHTML=[...D.gastos].sort(byDate).slice(0,150).map(g=>`<div class="it"><div class="m"><div class="t">${esc(g.concepto)}</div><div class="s">${fDate(g.fecha)}${g.nota?' · '+esc(g.nota):''}</div></div><div class="r neg">${money(g.valor)}</div><button class="x" onclick="delG('${g.id}')">✕</button></div>`).join('')||'<div class="empty"><b>🧾</b>Sin gastos todavía.</div>'}
 
 function saludo(){const h=new Date().getHours();return h<12?'Buenos días':h<19?'Buenas tardes':'Buenas noches'}
@@ -386,9 +448,7 @@ function render(){
   const nom=D.meta.tienda||'Mi Tienda';$('tienda').textContent=nom;document.title=nom;
   if(document.activeElement!==$('nomIn'))$('nomIn').value=D.meta.tienda||'';
   $('hello').textContent=`${saludo()} 💜 · ${new Date().toLocaleDateString('es-CO',{weekday:'long',day:'numeric',month:'long'})}`;
-  const opts=[...D.productos].sort((a,b)=>a.nombre.localeCompare(b.nombre)).map(p=>`<option value="${p.id}">${esc(p.nombre)} (${p.stock})</option>`).join('');
-  const cv=$('cPro').value,vv=$('vPro').value;
-  $('cPro').innerHTML=$('vPro').innerHTML='<option value="">— Selecciona —</option>'+opts;$('cPro').value=cv;$('vPro').value=vv;
+  pickBtn('cPro');pickBtn('vPro');renderPicker();
   renderResumen();renderProductos();renderHist();checkBackup()}
 
 // ================= Copias y exportación =================
@@ -399,11 +459,12 @@ async function guardarArchivo(filename,data,compartir=false){
     catch(e){if(e&&e.name==='AbortError')return false}}
   try{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type}));a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),2000);return true}
   catch(e){toast('No se pudo descargar');return false}}
-async function exportBackup(compartir=false){const data={app:'inventario',version:1,fecha:new Date().toISOString(),productos:D.productos,compras:D.compras,ventas:D.ventas,gastos:D.gastos};
+async function exportBackup(compartir=false){const data={app:'inventario',version:1,fecha:new Date().toISOString(),productos:D.productos,compras:D.compras,ventas:D.ventas,gastos:D.gastos,fotos:FOTOS};
   if(await guardarArchivo(`inventario_copia_${today()}.json`,JSON.stringify(data),compartir)){await putMeta({lastBackup:new Date().toISOString()});checkBackup();toast('Copia descargada ✔')}}
 function importBackup(inp){const f=inp.files[0];inp.value='';if(!f)return;const r=new FileReader();r.onload=async()=>{let d;
   try{d=JSON.parse(r.result);if(!Array.isArray(d.productos)||!Array.isArray(d.ventas))throw 0}catch(e){toast('Ese archivo no es una copia válida');return}
   if(!await ask(`La copia tiene ${d.productos.length} productos y ${d.ventas.length} ventas.\nEsto REEMPLAZA todo lo que hay ahora. ¿Continuar?`,{ok:'Restaurar',danger:true}))return;
+  await fotosClear();for(const[k,v]of Object.entries(d.fotos||{}))if(typeof v==='string'&&v.startsWith('data:image/'))await fotoSet(k,v);
   await reemplazarTodo({productos:d.productos||[],compras:d.compras||[],ventas:d.ventas||[],gastos:d.gastos||[]});toast('Copia restaurada ✔')};r.readAsText(f)}
 async function reemplazarTodo(N){
   setEstado('⏳ Guardando…');
@@ -431,11 +492,11 @@ function exportCSV(t){const cols={
   guardarArchivo(`${t}_${today()}.csv`,csv)}
 async function borrarTodo(){if(!await ask('¿Borrar TODOS los datos? Descarga una copia antes.',{ok:'Sí, borrar',danger:true}))return;
   const v=await ask('Escribe BORRAR para confirmar',{input:'',ok:'Borrar',danger:true});if(v!=='BORRAR')return;
-  await reemplazarTodo({productos:[],compras:[],ventas:[],gastos:[]});toast('Datos borrados')}
+  await fotosClear();await reemplazarTodo({productos:[],compras:[],ventas:[],gastos:[]});toast('Datos borrados')}
 
 // ================= Inicio =================
 ['cFec','vFec','gFec'].forEach(i=>$(i).value=today());
-setEstado('Conectando…');render();conectar();
+setEstado('Conectando…');render();conectar();cargarFotos();
 </script>
 </body>
 </html>
