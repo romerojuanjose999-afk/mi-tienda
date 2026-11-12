@@ -35,6 +35,8 @@ nav button.on b{background:var(--pri3)}
 .kpi.big .pos,.kpi.big .neg{color:#fff}
 .f{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .f .full{grid-column:1/-1}
+.f>*{min-width:0}
+input[type=date]{-webkit-appearance:none;appearance:none;min-height:48px;display:block;max-width:100%}
 label{font-size:12px;color:var(--mut);display:block;margin-bottom:4px;font-weight:500}
 input,select{width:100%;padding:12px;border:1.5px solid var(--bd);border-radius:12px;font-size:16px;background:#fbf9fe;color:var(--tx);font-family:inherit;transition:.15s}
 input:focus,select:focus{outline:0;border-color:var(--pri2);background:#fff;box-shadow:0 0 0 3px var(--pri3)}
@@ -148,8 +150,8 @@ img.thumb{cursor:zoom-in}
       <div class="full"><label>Producto *</label><input type="hidden" id="vPro"><button type="button" class="pick" id="vProBtn" onclick="openPicker('vPro')"></button></div>
       <div><label>Cantidad *</label><input id="vCan" type="number" inputmode="numeric" min="1" step="1" value="1" required></div>
       <div><label>Precio c/u *</label><input id="vPre" type="number" inputmode="decimal" min="0" step="any" required></div>
-      <div><label>Fecha</label><input id="vFec" type="date" required></div>
-      <div><label>Cliente / nota</label><input id="vNot" placeholder="Opcional"></div>
+      <div class="full"><label>Fecha</label><input id="vFec" type="date" required></div>
+      <div class="full"><label>Cliente / nota</label><input id="vNot" placeholder="Opcional"></div>
       <div class="full calc" id="vGan">Elige un producto.</div>
       <button class="b k full" type="submit">Registrar venta</button>
     </form>
@@ -165,8 +167,8 @@ img.thumb{cursor:zoom-in}
       <div class="full"><label>Producto *</label><input type="hidden" id="cPro"><button type="button" class="pick" id="cProBtn" onclick="openPicker('cPro')"></button></div>
       <div><label>Cantidad *</label><input id="cCan" type="number" inputmode="numeric" min="1" step="1" required></div>
       <div><label>Costo c/u *</label><input id="cCos" type="number" inputmode="decimal" min="0" step="any" required></div>
-      <div><label>Fecha</label><input id="cFec" type="date" required></div>
-      <div><label>Proveedor / nota</label><input id="cNot" placeholder="Opcional"></div>
+      <div class="full"><label>Fecha</label><input id="cFec" type="date" required></div>
+      <div class="full"><label>Proveedor / nota</label><input id="cNot" placeholder="Opcional"></div>
       <div class="full calc" id="cInfo">Total: $0</div>
       <button class="b full" type="submit">Registrar compra</button>
     </form>
@@ -182,7 +184,7 @@ img.thumb{cursor:zoom-in}
     <form class="f" id="gForm">
       <div class="full"><label>Concepto *</label><input id="gCon" list="gcats" required placeholder="Ej: Envío, bolsas, publicidad"><datalist id="gcats"><option>Envío</option><option>Empaques / bolsas</option><option>Publicidad</option><option>Transporte</option><option>Comisión de pago</option></datalist></div>
       <div><label>Valor *</label><input id="gVal" type="number" inputmode="decimal" min="0" step="any" required></div>
-      <div><label>Fecha</label><input id="gFec" type="date" required></div>
+      <div class="full"><label>Fecha</label><input id="gFec" type="date" required></div>
       <div class="full"><label>Nota</label><input id="gNot"></div>
       <button class="b full" type="submit">Registrar gasto</button>
     </form>
