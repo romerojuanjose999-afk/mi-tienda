@@ -127,10 +127,11 @@ img.thumb{cursor:zoom-in}
 <section id="t-resumen">
   <div class="hello" id="hello"></div>
   <div class="chips" id="perChips">
-    <button data-p="hoy">Hoy</button><button data-p="mes" class="on">Este mes</button><button data-p="mesant">Mes anterior</button><button data-p="anio">Este año</button><button data-p="todo">Todo</button>
+    <button data-p="hoy" class="on">Hoy</button><button data-p="ayer">Ayer</button><button data-p="dia" id="chipDia">📅 Otro día</button><button data-p="mes">Este mes</button><button data-p="mesant">Mes anterior</button><button data-p="anio">Este año</button><button data-p="todo">Todo</button>
   </div>
+  <div id="diaBox" class="hide" style="margin:-4px 0 12px"><input type="date" id="perDia"></div>
   <div class="grid" id="kpis"></div>
-  <div class="card" style="margin-top:12px"><h2>🏆 Lo que más ganancia deja</h2><div class="list" id="topList"></div></div>
+  <div class="card" style="margin-top:12px"><h2 id="gpTitle">💰 Ganancia por producto</h2><div class="list" id="topList"></div></div>
   <div class="card"><h2>⚠️ Por acabarse</h2><div class="list" id="lowList"></div></div>
 </section>
 
@@ -400,9 +401,13 @@ function go(t){document.querySelectorAll('nav button').forEach(b=>b.classList.to
   document.querySelectorAll('main>section').forEach(s=>s.classList.toggle('hide',s.id!=='t-'+t));
   $('fab').classList.toggle('hide',t==='ventas');scrollTo(0,0)}
 $('nav').onclick=e=>{const b=e.target.closest('button');if(b)go(b.dataset.t)};
-let periodo='mes';
+let periodo='hoy';
 $('perChips').onclick=e=>{const b=e.target.closest('button');if(!b)return;periodo=b.dataset.p;
-  document.querySelectorAll('#perChips button').forEach(x=>x.classList.toggle('on',x===b));renderResumen()};
+  document.querySelectorAll('#perChips button').forEach(x=>x.classList.toggle('on',x===b));
+  $('diaBox').classList.toggle('hide',periodo!=='dia');if(periodo==='dia'&&!$('perDia').value)$('perDia').value=today();renderResumen()};
+$('perDia').onchange=renderResumen;
+function ayer(){const d=new Date();d.setDate(d.getDate()-1);d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,10)}
+function nombrePeriodo(){return{hoy:'hoy',ayer:'ayer',dia:$('perDia').value?'el '+fDate($('perDia').value):'ese día',mes:'este mes',mesant:'el mes anterior',anio:'este año',todo:'en total'}[periodo]}
 
 // ================= Productos =================
 function calcPMar(){const c=+$('pCos').value,p=+$('pPre').value;
@@ -454,14 +459,14 @@ async function delC(id){const c=D.compras.find(x=>x.id===id);
 // ================= Ventas =================
 function calcV(){const p=prod($('vPro').value);if(!p){$('vGan').textContent='Elige un producto.';return}
   const q=+$('vCan').value||0,pr=+$('vPre').value||0,g=(pr-p.costo)*q;
-  $('vGan').innerHTML=`Cobras <b>${money(pr*q)}</b> · ganas <b class="${g<0?'neg':'pos'}">${money(g)}</b> (${pct(margen(p.costo,pr))})<br><span class="hint">Quedan ${p.stock} en stock</span>`}
+  $('vGan').innerHTML=`Total a cobrar: <b style="font-size:17px">${money(pr*q)}</b><br><span class="hint">Quedan ${p.stock} en stock</span>`}
 $('vPro').onchange=()=>{const p=prod($('vPro').value);if(p)$('vPre').value=p.precio;calcV()};
 $('vCan').oninput=$('vPre').oninput=calcV;
 $('vForm').onsubmit=async e=>{e.preventDefault();const p=prod($('vPro').value);if(!p){toast('Escribe y elige un producto');$('vProQ').focus();return}const q=+$('vCan').value,pr=+$('vPre').value;
   if(q>p.stock&&!await ask(`Solo tienes ${p.stock} de "${p.nombre}" en stock. ¿Registrar la venta de todos modos?`,{ok:'Registrar'}))return;
   const venta={id:newId(),fecha:$('vFec').value,pid:p.id,nombre:p.nombre,cantidad:q,precio:pr,costo:p.costo,total:q*pr,ganancia:q*(pr-p.costo),nota:$('vNot').value};
   $('vForm').reset();$('vPro').value='';pickBtn('vPro');$('vFec').value=today();$('vCan').value=1;calcV();
-  try{await put('productos',{...p,stock:Math.max(0,p.stock-q)});await put('ventas',venta);toast(`Venta registrada ✔ Ganaste ${money(venta.ganancia)}`)}catch(e){}};
+  try{await put('productos',{...p,stock:Math.max(0,p.stock-q)});await put('ventas',venta);toast(`Venta registrada ✔ ${money(venta.total)}`)}catch(e){}};
 async function delV(id){const v=D.ventas.find(x=>x.id===id);
   if(!await ask(`¿Anular esta venta?\nSe devolverán ${v.cantidad} unidades al stock.`,{ok:'Anular',danger:true}))return;
   const p=prod(v.pid);try{if(p)await put('productos',{...p,stock:p.stock+v.cantidad});await del('ventas',id)}catch(e){}}
@@ -473,7 +478,7 @@ $('gForm').onsubmit=async e=>{e.preventDefault();
 async function delG(id){if(!await ask('¿Borrar este gasto?',{ok:'Borrar',danger:true}))return;await del('gastos',id).catch(()=>{})}
 
 // ================= Resumen =================
-function enPeriodo(f){if(periodo==='todo')return true;if(periodo==='hoy')return f===today();const d=new Date(f+'T00:00'),n=new Date();
+function enPeriodo(f){if(periodo==='todo')return true;if(periodo==='hoy')return f===today();if(periodo==='ayer')return f===ayer();if(periodo==='dia')return f===$('perDia').value;const d=new Date(f+'T00:00'),n=new Date();
   if(periodo==='anio')return d.getFullYear()===n.getFullYear();
   if(periodo==='mes')return d.getFullYear()===n.getFullYear()&&d.getMonth()===n.getMonth();
   const a=new Date(n.getFullYear(),n.getMonth()-1,1);return d.getFullYear()===a.getFullYear()&&d.getMonth()===a.getMonth()}
@@ -482,19 +487,22 @@ function renderResumen(){
   const ing=V.reduce((s,v)=>s+v.total,0),gb=V.reduce((s,v)=>s+v.ganancia,0),gas=G.reduce((s,g)=>s+g.valor,0),comp=C.reduce((s,c)=>s+c.total,0);
   const inv=D.productos.reduce((s,p)=>s+p.stock*p.costo,0),pot=D.productos.reduce((s,p)=>s+p.stock*p.precio,0),uds=V.reduce((s,v)=>s+v.cantidad,0);
   const neta=gb-gas;
-  $('kpis').innerHTML=`<div class="kpi big"><div class="l">Ganancia neta</div><div class="v ${neta<0?'neg':'pos'}">${money(neta)}</div><div class="l" style="margin-top:4px">ganancia de ventas ${money(gb)} − gastos ${money(gas)}</div></div>`+
+  $('kpis').innerHTML=`<div class="kpi big"><div class="l">Ganancia neta ${nombrePeriodo()}</div><div class="v ${neta<0?'neg':'pos'}">${money(neta)}</div><div class="l" style="margin-top:4px">ganancia de ventas ${money(gb)} − gastos ${money(gas)}</div></div>`+
    [['Ventas',money(ing),''],['Margen promedio',pct(ing?gb/ing:NaN),''],['Unidades vendidas',uds,''],['Compras mercancía',money(comp),''],
     ['Inventario (costo)',money(inv),''],['Ganancia por vender',money(pot-inv),'pos']].map(([l,v,c])=>`<div class="kpi"><div class="l">${l}</div><div class="v ${c}">${v}</div></div>`).join('');
   const agg={};V.forEach(v=>{const a=agg[v.pid]||(agg[v.pid]={id:v.pid,n:v.nombre,q:0,t:0,g:0});a.q+=v.cantidad;a.t+=v.total;a.g+=v.ganancia});
-  const top=Object.values(agg).sort((a,b)=>b.g-a.g).slice(0,10);const mx=Math.max(1,...top.map(t=>t.g));
-  $('topList').innerHTML=top.map(t=>`<div class="it">${thumb(t.id,t.n)}<div class="m"><div class="t">${esc(t.n)}</div><div class="s">${t.q} vendidos · ${money(t.t)} · margen ${pct(t.g/t.t)}</div><div class="bar"><i style="width:${Math.max(0,t.g/mx*100)}%"></i></div></div><div class="r pos">${money(t.g)}</div></div>`).join('')||'<div class="empty"><b>💜</b>Sin ventas en este periodo.</div>';
+  const top=Object.values(agg).sort((a,b)=>b.g-a.g);const mx=Math.max(1,...top.map(t=>t.g));
+  $('topList').innerHTML=top.map(t=>`<div class="it">${thumb(t.id,t.n)}<div class="m"><div class="t">${esc(t.n)}</div><div class="s">${t.q} vendidos · ${money(t.t)} · margen ${pct(t.g/t.t)}</div><div class="bar"><i style="width:${Math.max(0,t.g/mx*100)}%"></i></div></div><div class="r pos">${money(t.g)}<small style="color:var(--mut)">ganancia</small></div></div>`).join('')
+    +(top.length?`<div class="it" style="border-top:2px solid var(--pri3);margin-top:4px"><div class="thumb" style="background:var(--pri);color:#fff">Σ</div><div class="m"><div class="t">Total ${nombrePeriodo()}</div><div class="s">${uds} unidades · vendido ${money(ing)}</div></div><div class="r" style="font-size:17px;color:var(--ok)">${money(gb)}<small style="color:var(--mut)">ganancia</small></div></div>`:'')
+    ||'<div class="empty"><b>💜</b>Sin ventas '+nombrePeriodo()+'.</div>';
+  $('gpTitle').textContent='💰 Ganancia por producto · '+nombrePeriodo();
   const low=D.productos.filter(p=>p.stock<=p.minimo).sort((a,b)=>a.stock-b.stock);
   $('lowList').innerHTML=low.map(p=>`<div class="it">${thumb(p.id,p.nombre)}<div class="m"><div class="t">${esc(p.nombre)}</div><div class="s">Aviso en ${p.minimo}</div></div><div class="r neg">${p.stock} und</div></div>`).join('')||'<div class="empty"><b>✨</b>Todo con buen stock.</div>'}
 
 // ================= Historiales =================
 const byDate=(a,b)=>b.fecha.localeCompare(a.fecha)||(b.id>a.id?1:-1);
 function renderHist(){
-  $('vList').innerHTML=[...D.ventas].sort(byDate).slice(0,150).map(v=>`<div class="it">${thumb(v.pid,v.nombre)}<div class="m"><div class="t">${esc(v.nombre)}</div><div class="s">${fDate(v.fecha)} · ${v.cantidad} × ${money(v.precio)}${v.nota?' · '+esc(v.nota):''}</div></div><div class="r">${money(v.total)}<small class="${v.ganancia<0?'neg':'pos'}">+${money(v.ganancia)}</small></div><button class="x" onclick="delV('${v.id}')">✕</button></div>`).join('')||'<div class="empty"><b>💵</b>Sin ventas todavía.</div>';
+  $('vList').innerHTML=[...D.ventas].sort(byDate).slice(0,150).map(v=>`<div class="it">${thumb(v.pid,v.nombre)}<div class="m"><div class="t">${esc(v.nombre)}</div><div class="s">${fDate(v.fecha)} · ${v.cantidad} × ${money(v.precio)}${v.nota?' · '+esc(v.nota):''}</div></div><div class="r">${money(v.total)}</div><button class="x" onclick="delV('${v.id}')">✕</button></div>`).join('')||'<div class="empty"><b>💵</b>Sin ventas todavía.</div>';
   $('cList').innerHTML=[...D.compras].sort(byDate).slice(0,150).map(c=>`<div class="it">${thumb(c.pid,c.nombre)}<div class="m"><div class="t">${esc(c.nombre)}</div><div class="s">${fDate(c.fecha)} · ${c.cantidad} × ${money(c.costo)}${c.nota?' · '+esc(c.nota):''}</div></div><div class="r">${money(c.total)}</div><button class="x" onclick="delC('${c.id}')">✕</button></div>`).join('')||'<div class="empty"><b>🛒</b>Sin compras todavía.</div>';
   $('gList').innerHTML=[...D.gastos].sort(byDate).slice(0,150).map(g=>`<div class="it"><div class="m"><div class="t">${esc(g.concepto)}</div><div class="s">${fDate(g.fecha)}${g.nota?' · '+esc(g.nota):''}</div></div><div class="r neg">${money(g.valor)}</div><button class="x" onclick="delG('${g.id}')">✕</button></div>`).join('')||'<div class="empty"><b>🧾</b>Sin gastos todavía.</div>'}
 
