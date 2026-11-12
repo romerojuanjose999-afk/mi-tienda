@@ -682,7 +682,7 @@ async function borrarTodo(){if(!await ask('¿Borrar TODOS los datos? Descarga un
     if(q>0){D.compras.push({id:newId(),fecha:p.creado||today(),pid:p.id,nombre:p.nombre,cantidad:q,costo:p.costo,total:q*p.costo,nota:'Stock inicial'});n++}});
   D.meta.migInv1=true;lsSet()})();
 setEstado('Conectando…');render();conectar();cargarFotos();
-if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{});
+if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost'))navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script>
 </body>
 </html>
