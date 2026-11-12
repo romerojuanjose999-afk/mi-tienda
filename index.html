@@ -64,6 +64,11 @@ input:focus,select:focus{outline:0;border-color:var(--pri2);background:#fff;box-
 .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .hide{display:none!important}
 .bar{height:6px;background:var(--pri3);border-radius:3px;overflow:hidden;margin-top:6px}.bar i{display:block;height:100%;background:linear-gradient(90deg,#7c3aed,#c084fc);border-radius:3px}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.seg button{padding:13px 8px;border:1.5px solid var(--bd);border-radius:12px;background:#fbf9fe;font-family:inherit;font-size:15px;font-weight:600;color:var(--tx);cursor:pointer}
+.seg button.on{background:linear-gradient(135deg,#7c3aed,#9333ea);color:#fff;border-color:transparent;box-shadow:0 4px 12px rgba(124,58,237,.25)}
+.pg{display:inline-block;padding:0 7px;border-radius:8px;font-size:11px;font-weight:600;background:#ede9fe;color:var(--pri)}
+.pg.ef{background:#dcfce7;color:#15803d}.pg.sd{background:#f3f4f6;color:var(--mut)}
 .calc{background:#faf7ff;border:1.5px dashed #ddd0f5;border-radius:12px;padding:11px 12px;font-size:14px}
 .chips{display:flex;gap:8px;overflow-x:auto;margin-bottom:12px;padding-bottom:2px;scrollbar-width:none}
 .chips button{border:1.5px solid var(--bd);background:#fff;border-radius:20px;padding:7px 14px;font-size:13px;white-space:nowrap;font-family:inherit;color:var(--mut);font-weight:500}
@@ -132,6 +137,7 @@ img.thumb{cursor:zoom-in}
   <div id="diaBox" class="hide" style="margin:-4px 0 12px"><input type="date" id="perDia"></div>
   <div class="grid" id="kpis"></div>
   <div class="card" style="margin-top:12px"><h2 id="gpTitle">💰 Ganancia por producto</h2><div class="list" id="topList"></div></div>
+  <div class="card"><h2 id="pagoTitle">💳 Formas de pago</h2><div class="list" id="pagoList"></div></div>
   <div class="card"><h2>⚠️ Por acabarse</h2><div class="list" id="lowList"></div></div>
 </section>
 
@@ -173,6 +179,7 @@ img.thumb{cursor:zoom-in}
       <div><label>Cantidad *</label><input id="vCan" type="number" inputmode="numeric" min="1" step="1" value="1" required></div>
       <div><label>Precio c/u *</label><input id="vPre" type="number" inputmode="decimal" min="0" step="any" required></div>
       <div class="full"><label>Fecha</label><input id="vFec" type="date" required></div>
+      <div class="full"><label>Forma de pago *</label><div class="seg" id="vPago"><button type="button" data-v="Efectivo">💵 Efectivo</button><button type="button" data-v="Nequi">📱 Nequi</button></div></div>
       <div class="full"><label>Cliente / nota</label><input id="vNot" placeholder="Opcional"></div>
       <div class="full calc" id="vGan">Elige un producto.</div>
       <button class="b k full" type="submit">Registrar venta</button>
@@ -462,11 +469,18 @@ function calcV(){const p=prod($('vPro').value);if(!p){$('vGan').textContent='Eli
   $('vGan').innerHTML=`Total a cobrar: <b style="font-size:17px">${money(pr*q)}</b><br><span class="hint">Quedan ${p.stock} en stock</span>`}
 $('vPro').onchange=()=>{const p=prod($('vPro').value);if(p)$('vPre').value=p.precio;calcV()};
 $('vCan').oninput=$('vPre').oninput=calcV;
+let pagoSel='';
+function setPago(v){pagoSel=v;document.querySelectorAll('#vPago button').forEach(b=>b.classList.toggle('on',b.dataset.v===v))}
+$('vPago').onclick=e=>{const b=e.target.closest('button');if(b)setPago(b.dataset.v)};
+// Ventas viejas sin forma de pago: se deduce de la nota si dice nequi/efectivo
+function pagoDe(v){if(v.pago)return v.pago;const n=norm(v.nota);return n.includes('nequi')?'Nequi':n.includes('efectivo')?'Efectivo':'Sin especificar'}
+function pagoTag(v){const x=pagoDe(v);return `<span class="pg ${x==='Efectivo'?'ef':x==='Nequi'?'':'sd'}">${x==='Efectivo'?'💵 Efectivo':x==='Nequi'?'📱 Nequi':'Sin especificar'}</span>`}
 $('vForm').onsubmit=async e=>{e.preventDefault();const p=prod($('vPro').value);if(!p){toast('Escribe y elige un producto');$('vProQ').focus();return}const q=+$('vCan').value,pr=+$('vPre').value;
+  if(!pagoSel){toast('Elige si pagó en Efectivo o Nequi');$('vPago').scrollIntoView({block:'center'});return}
   if(q>p.stock&&!await ask(`Solo tienes ${p.stock} de "${p.nombre}" en stock. ¿Registrar la venta de todos modos?`,{ok:'Registrar'}))return;
-  const venta={id:newId(),fecha:$('vFec').value,pid:p.id,nombre:p.nombre,cantidad:q,precio:pr,costo:p.costo,total:q*pr,ganancia:q*(pr-p.costo),nota:$('vNot').value};
-  $('vForm').reset();$('vPro').value='';pickBtn('vPro');$('vFec').value=today();$('vCan').value=1;calcV();
-  try{await put('productos',{...p,stock:Math.max(0,p.stock-q)});await put('ventas',venta);toast(`Venta registrada ✔ ${money(venta.total)}`)}catch(e){}};
+  const venta={id:newId(),fecha:$('vFec').value,pid:p.id,nombre:p.nombre,cantidad:q,precio:pr,costo:p.costo,total:q*pr,ganancia:q*(pr-p.costo),pago:pagoSel,nota:$('vNot').value};
+  $('vForm').reset();$('vPro').value='';pickBtn('vPro');setPago('');$('vFec').value=today();$('vCan').value=1;calcV();
+  try{await put('productos',{...p,stock:Math.max(0,p.stock-q)});await put('ventas',venta);toast(`Venta registrada ✔ ${money(venta.total)} · ${venta.pago}`)}catch(e){}};
 async function delV(id){const v=D.ventas.find(x=>x.id===id);
   if(!await ask(`¿Anular esta venta?\nSe devolverán ${v.cantidad} unidades al stock.`,{ok:'Anular',danger:true}))return;
   const p=prod(v.pid);try{if(p)await put('productos',{...p,stock:p.stock+v.cantidad});await del('ventas',id)}catch(e){}}
@@ -496,13 +510,22 @@ function renderResumen(){
     +(top.length?`<div class="it" style="border-top:2px solid var(--pri3);margin-top:4px"><div class="thumb" style="background:var(--pri);color:#fff">Σ</div><div class="m"><div class="t">Total ${nombrePeriodo()}</div><div class="s">${uds} unidades · vendido ${money(ing)}</div></div><div class="r" style="font-size:17px;color:var(--ok)">${money(gb)}<small style="color:var(--mut)">ganancia</small></div></div>`:'')
     ||'<div class="empty"><b>💜</b>Sin ventas '+nombrePeriodo()+'.</div>';
   $('gpTitle').textContent='💰 Ganancia por producto · '+nombrePeriodo();
+  const PG={};V.forEach(v=>{const k=pagoDe(v);const a=PG[k]||(PG[k]={t:0,n:0,g:0});a.t+=v.total;a.n++;a.g+=v.ganancia});
+  const orden=['Efectivo','Nequi','Sin especificar'].filter(k=>PG[k]||k!=='Sin especificar');
+  $('pagoTitle').textContent='💳 Formas de pago · '+nombrePeriodo();
+  $('pagoList').innerHTML=V.length?orden.map(k=>{const a=PG[k]||{t:0,n:0};const pc=ing?a.t/ing:0;
+    return `<div class="it"><div class="thumb" style="${k==='Efectivo'?'background:#dcfce7':k==='Nequi'?'':'background:#f3f4f6'}">${k==='Efectivo'?'💵':k==='Nequi'?'📱':'❔'}</div>
+      <div class="m"><div class="t">${k==='Nequi'?'Recibido por Nequi':k==='Efectivo'?'Recibido en efectivo':'Sin especificar'}</div><div class="s">${a.n} venta${a.n===1?'':'s'} · ${(pc*100).toFixed(0)}% del total</div><div class="bar"><i style="width:${pc*100}%;${k==='Efectivo'?'background:#22c55e':''}"></i></div></div>
+      <div class="r" style="font-size:16px">${money(a.t)}</div></div>`}).join('')
+    +`<div class="it" style="border-top:2px solid var(--pri3);margin-top:4px"><div class="thumb" style="background:var(--pri);color:#fff">Σ</div><div class="m"><div class="t">Total recibido</div><div class="s">${V.length} ventas</div></div><div class="r" style="font-size:17px">${money(ing)}</div></div>`
+    :'<div class="empty"><b>💳</b>Sin ventas '+nombrePeriodo()+'.</div>';
   const low=D.productos.filter(p=>p.stock<=p.minimo).sort((a,b)=>a.stock-b.stock);
   $('lowList').innerHTML=low.map(p=>`<div class="it">${thumb(p.id,p.nombre)}<div class="m"><div class="t">${esc(p.nombre)}</div><div class="s">Aviso en ${p.minimo}</div></div><div class="r neg">${p.stock} und</div></div>`).join('')||'<div class="empty"><b>✨</b>Todo con buen stock.</div>'}
 
 // ================= Historiales =================
 const byDate=(a,b)=>b.fecha.localeCompare(a.fecha)||(b.id>a.id?1:-1);
 function renderHist(){
-  $('vList').innerHTML=[...D.ventas].sort(byDate).slice(0,150).map(v=>`<div class="it">${thumb(v.pid,v.nombre)}<div class="m"><div class="t">${esc(v.nombre)}</div><div class="s">${fDate(v.fecha)} · ${v.cantidad} × ${money(v.precio)}${v.nota?' · '+esc(v.nota):''}</div></div><div class="r">${money(v.total)}</div><button class="x" onclick="delV('${v.id}')">✕</button></div>`).join('')||'<div class="empty"><b>💵</b>Sin ventas todavía.</div>';
+  $('vList').innerHTML=[...D.ventas].sort(byDate).slice(0,150).map(v=>`<div class="it">${thumb(v.pid,v.nombre)}<div class="m"><div class="t">${esc(v.nombre)}</div><div class="s">${fDate(v.fecha)} · ${v.cantidad} × ${money(v.precio)} ${pagoTag(v)}${v.nota?' · '+esc(v.nota):''}</div></div><div class="r">${money(v.total)}</div><button class="x" onclick="delV('${v.id}')">✕</button></div>`).join('')||'<div class="empty"><b>💵</b>Sin ventas todavía.</div>';
   $('cList').innerHTML=[...D.compras].sort(byDate).slice(0,150).map(c=>`<div class="it">${thumb(c.pid,c.nombre)}<div class="m"><div class="t">${esc(c.nombre)}</div><div class="s">${fDate(c.fecha)} · ${c.cantidad} × ${money(c.costo)}${c.nota?' · '+esc(c.nota):''}</div></div><div class="r">${money(c.total)}</div><button class="x" onclick="delC('${c.id}')">✕</button></div>`).join('')||'<div class="empty"><b>🛒</b>Sin compras todavía.</div>';
   $('gList').innerHTML=[...D.gastos].sort(byDate).slice(0,150).map(g=>`<div class="it"><div class="m"><div class="t">${esc(g.concepto)}</div><div class="s">${fDate(g.fecha)}${g.nota?' · '+esc(g.nota):''}</div></div><div class="r neg">${money(g.valor)}</div><button class="x" onclick="delG('${g.id}')">✕</button></div>`).join('')||'<div class="empty"><b>🧾</b>Sin gastos todavía.</div>'}
 
@@ -548,7 +571,7 @@ function checkBackup(){const has=D.productos.length+D.ventas.length>0;const lb=D
   if(show)$('backupAlert').innerHTML=`💾 ${lb?`Hace ${dias} días no descargas`:'Aún no has descargado'} una copia de seguridad.<br><button class="b k" onclick="exportBackup(true)">Guardar copia ahora</button>`}
 function exportCSV(t){const cols={
   productos:[['Producto','nombre'],['Categoría','categoria'],['Costo','costo'],['Precio','precio'],['Ganancia/u',p=>p.precio-p.costo],['Margen %',p=>p.precio?((p.precio-p.costo)/p.precio*100):''],['Stock','stock'],['Invertido',p=>p.stock*p.costo]],
-  ventas:[['Fecha','fecha'],['Producto','nombre'],['Cantidad','cantidad'],['Precio u.','precio'],['Costo u.','costo'],['Total','total'],['Ganancia','ganancia'],['Nota','nota']],
+  ventas:[['Fecha','fecha'],['Producto','nombre'],['Cantidad','cantidad'],['Precio u.','precio'],['Costo u.','costo'],['Total','total'],['Ganancia','ganancia'],['Pago',v=>pagoDe(v)],['Nota','nota']],
   compras:[['Fecha','fecha'],['Producto','nombre'],['Cantidad','cantidad'],['Costo u.','costo'],['Total','total'],['Nota','nota']],
   gastos:[['Fecha','fecha'],['Concepto','concepto'],['Valor','valor'],['Nota','nota']]}[t];
   const val=(r,k)=>{let v=typeof k==='function'?k(r):r[k];if(typeof v==='number')v=String(Math.round(v*100)/100).replace('.',',');return '"'+String(v??'').replace(/"/g,'""')+'"'};
