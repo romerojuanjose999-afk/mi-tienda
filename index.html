@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mi Inventario y Ventas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f5f2fb;--card:#fff;--tx:#2a1b4a;--mut:#7b6f93;--pri:#7c3aed;--pri2:#a855f7;--pri3:#ede9fe;--ok:#059669;--bad:#e11d48;--warn:#d97706;--bd:#ece6f7;--sh:0 2px 10px rgba(91,33,182,.07)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;font-family:Poppins,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--tx);font-size:14.5px;padding-bottom:80px}
+header{background:linear-gradient(135deg,#5b21b6 0%,#7c3aed 55%,#a855f7 100%);color:#fff;padding:16px 18px 18px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:5;box-shadow:0 4px 18px rgba(91,33,182,.25)}
+.logo{width:42px;height:42px;border-radius:12px;background:rgba(255,255,255,.18);display:grid;place-items:center;font-size:22px;flex:none}
+header .ttl{flex:1;min-width:0}
+header h1{font-size:18px;margin:0;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+#estado{font-size:11.5px;color:#e9d5ff;display:block;font-weight:400;margin-top:1px}
+.hbtn{background:rgba(255,255,255,.18);border:0;color:#fff;border-radius:12px;width:42px;height:42px;font-size:18px;flex:none}
+main{max-width:760px;margin:0 auto;padding:14px}
+nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--bd);display:flex;z-index:5;padding:4px 4px env(safe-area-inset-bottom);box-shadow:0 -4px 16px rgba(91,33,182,.06)}
+nav button{flex:1;background:none;border:0;padding:6px 2px 8px;font-size:10.5px;color:var(--mut);display:flex;flex-direction:column;align-items:center;gap:3px;font-family:inherit}
+nav button b{font-size:19px;font-weight:400;width:46px;height:30px;display:grid;place-items:center;border-radius:15px;transition:.2s}
+nav button.on{color:var(--pri);font-weight:600}
+nav button.on b{background:var(--pri3)}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:18px;padding:16px;margin-bottom:14px;box-shadow:var(--sh)}
+.card h2{margin:0 0 12px;font-size:15.5px;font-weight:600}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+@media(min-width:620px){.grid{grid-template-columns:repeat(3,1fr)}}
+.kpi{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:13px 14px;box-shadow:var(--sh)}
+.kpi .l{color:var(--mut);font-size:11px;font-weight:500;letter-spacing:.02em}
+.kpi .v{font-size:18px;font-weight:700;margin-top:3px}
+.kpi.big{grid-column:1/-1;background:linear-gradient(135deg,#6d28d9,#a855f7);color:#fff;border:0;padding:18px;box-shadow:0 8px 24px rgba(124,58,237,.3)}
+.kpi.big .l{color:#ede9fe}.kpi.big .v{font-size:30px;color:#fff}
+.pos{color:var(--ok)}.neg{color:var(--bad)}.wrn{color:var(--warn)}
+.kpi.big .pos,.kpi.big .neg{color:#fff}
+.f{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.f .full{grid-column:1/-1}
+label{font-size:12px;color:var(--mut);display:block;margin-bottom:4px;font-weight:500}
+input,select{width:100%;padding:12px;border:1.5px solid var(--bd);border-radius:12px;font-size:16px;background:#fbf9fe;color:var(--tx);font-family:inherit;transition:.15s}
+input:focus,select:focus{outline:0;border-color:var(--pri2);background:#fff;box-shadow:0 0 0 3px var(--pri3)}
+.b{background:linear-gradient(135deg,#7c3aed,#9333ea);color:#fff;border:0;padding:13px 18px;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;box-shadow:0 4px 12px rgba(124,58,237,.25)}
+.b.g{background:#efeaf8;color:var(--pri);box-shadow:none}.b.r{background:var(--bad);box-shadow:none}.b.k{background:linear-gradient(135deg,#7c3aed,#c026d3)}.b.w{width:100%}
+.b:active{transform:scale(.98)}
+.list .it{display:flex;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--bd)}
+.list .it:last-child{border:0}
+.av{width:40px;height:40px;border-radius:12px;background:var(--pri3);color:var(--pri);display:grid;place-items:center;font-weight:700;font-size:16px;flex:none}
+.it .m{flex:1;min-width:0}
+.it .t{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.it .s{font-size:12.5px;color:var(--mut);margin-top:2px}
+.it .r{text-align:right;font-weight:600;white-space:nowrap}
+.it .r small{display:block;font-weight:500;font-size:12px}
+.x{background:#f6f3fb;border:0;border-radius:10px;padding:8px 10px;font-size:13px;color:var(--pri);font-family:inherit;font-weight:500}
+.tag{display:inline-block;padding:1px 8px;border-radius:10px;font-size:11px;background:#ffe4e6;color:var(--bad);font-weight:600}
+.alert{background:linear-gradient(135deg,#faf5ff,#f3e8ff);border:1px solid #e9d5ff;padding:12px 14px;border-radius:16px;margin-bottom:14px;font-size:14px}
+.alert .b{margin-top:8px;padding:9px 14px;font-size:14px}
+.hint{color:var(--mut);font-size:12.5px;margin:10px 0 0}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.hide{display:none!important}
+.bar{height:6px;background:var(--pri3);border-radius:3px;overflow:hidden;margin-top:6px}.bar i{display:block;height:100%;background:linear-gradient(90deg,#7c3aed,#c084fc);border-radius:3px}
+.calc{background:#faf7ff;border:1.5px dashed #ddd0f5;border-radius:12px;padding:11px 12px;font-size:14px}
+.chips{display:flex;gap:8px;overflow-x:auto;margin-bottom:12px;padding-bottom:2px;scrollbar-width:none}
+.chips button{border:1.5px solid var(--bd);background:#fff;border-radius:20px;padding:7px 14px;font-size:13px;white-space:nowrap;font-family:inherit;color:var(--mut);font-weight:500}
+.chips button.on{background:var(--pri);color:#fff;border-color:var(--pri)}
+.hello{margin:2px 2px 12px;font-size:13px;color:var(--mut)}
+#modal{position:fixed;inset:0;background:rgba(46,16,101,.45);display:flex;align-items:flex-end;justify-content:center;z-index:20;backdrop-filter:blur(2px)}
+#modal .box{background:#fff;width:100%;max-width:480px;border-radius:22px 22px 0 0;padding:22px 18px calc(20px + env(safe-area-inset-bottom))}
+@media(min-width:620px){#modal{align-items:center}#modal .box{border-radius:22px}}
+#modal p{margin:0 0 14px;white-space:pre-line;font-size:15px}
+#toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:#2e1065;color:#fff;padding:11px 18px;border-radius:24px;font-size:14px;z-index:30;max-width:90%;text-align:center;box-shadow:0 6px 20px rgba(46,16,101,.3)}
+.fab{position:fixed;right:16px;bottom:90px;background:linear-gradient(135deg,#7c3aed,#c026d3);color:#fff;border:0;border-radius:30px;padding:14px 22px;font-size:15px;font-weight:600;font-family:inherit;box-shadow:0 8px 22px rgba(124,58,237,.4);z-index:6}
+.empty{text-align:center;color:var(--mut);padding:18px 6px;font-size:13.5px}
+.empty b{display:block;font-size:30px;margin-bottom:4px}
+</style>
+
+</head>
+<body>
+<header>
+  <div class="logo">🛍️</div>
+  <div class="ttl"><h1 id="tienda" onclick="editNombre()">Mi Tienda</h1><span id="estado">Cargando…</span></div>
+  <button class="hbtn" onclick="go('datos')" aria-label="Ajustes">⚙️</button>
+</header>
+
+<main>
+<div id="backupAlert" class="alert hide"></div>
+
+<!-- RESUMEN -->
+<section id="t-resumen">
+  <div class="hello" id="hello"></div>
+  <div class="chips" id="perChips">
+    <button data-p="hoy">Hoy</button><button data-p="mes" class="on">Este mes</button><button data-p="mesant">Mes anterior</button><button data-p="anio">Este año</button><button data-p="todo">Todo</button>
+  </div>
+  <div class="grid" id="kpis"></div>
+  <div class="card" style="margin-top:12px"><h2>🏆 Lo que más ganancia deja</h2><div class="list" id="topList"></div></div>
+  <div class="card"><h2>⚠️ Por acabarse</h2><div class="list" id="lowList"></div></div>
+</section>
+
+<!-- PRODUCTOS -->
+<section id="t-productos" class="hide">
+  <div class="card">
+    <h2 id="pTitle">Nuevo producto</h2>
+    <form class="f" id="pForm">
+      <input type="hidden" id="pId">
+      <div class="full"><label>Nombre *</label><input id="pNom" required placeholder="Ej: Pinzas metálicas x3"></div>
+      <div class="full"><label>Categoría</label><input id="pCat" list="cats" placeholder="Ej: Accesorios"><datalist id="cats"></datalist></div>
+      <div><label>Costo c/u *</label><input id="pCos" type="number" inputmode="decimal" min="0" step="any" required></div>
+      <div><label>Precio venta *</label><input id="pPre" type="number" inputmode="decimal" min="0" step="any" required></div>
+      <div><label id="pStkL">Stock inicial</label><input id="pStk" type="number" inputmode="numeric" min="0" step="1" value="0"></div>
+      <div><label>Avisar si quedan ≤</label><input id="pMin" type="number" inputmode="numeric" min="0" step="1" value="2"></div>
+      <div class="full calc" id="pMar">Escribe costo y precio para ver el margen.</div>
+      <button class="b" type="submit">Guardar</button><button class="b g" type="button" onclick="resetP()">Limpiar</button>
+    </form>
+    <p class="hint">Para reponer mercancía usa <b>Compras</b>, así queda registrada la plata que invertiste.</p>
+  </div>
+  <div class="card">
+    <input id="pBus" placeholder="🔎 Buscar producto…" oninput="renderProductos()" style="margin-bottom:6px">
+    <div class="list" id="pList"></div>
+  </div>
+</section>
+
+<!-- VENDER -->
+<section id="t-ventas" class="hide">
+  <div class="card">
+    <h2>💵 Registrar venta</h2>
+    <form class="f" id="vForm">
+      <div class="full"><label>Producto *</label><select id="vPro" required></select></div>
+      <div><label>Cantidad *</label><input id="vCan" type="number" inputmode="numeric" min="1" step="1" value="1" required></div>
+      <div><label>Precio c/u *</label><input id="vPre" type="number" inputmode="decimal" min="0" step="any" required></div>
+      <div><label>Fecha</label><input id="vFec" type="date" required></div>
+      <div><label>Cliente / nota</label><input id="vNot" placeholder="Opcional"></div>
+      <div class="full calc" id="vGan">Elige un producto.</div>
+      <button class="b k full" type="submit">Registrar venta</button>
+    </form>
+  </div>
+  <div class="card"><h2>Ventas recientes</h2><div class="list" id="vList"></div></div>
+</section>
+
+<!-- COMPRAS -->
+<section id="t-compras" class="hide">
+  <div class="card">
+    <h2>🛒 Registrar compra / reposición</h2>
+    <form class="f" id="cForm">
+      <div class="full"><label>Producto *</label><select id="cPro" required></select></div>
+      <div><label>Cantidad *</label><input id="cCan" type="number" inputmode="numeric" min="1" step="1" required></div>
+      <div><label>Costo c/u *</label><input id="cCos" type="number" inputmode="decimal" min="0" step="any" required></div>
+      <div><label>Fecha</label><input id="cFec" type="date" required></div>
+      <div><label>Proveedor / nota</label><input id="cNot" placeholder="Opcional"></div>
+      <div class="full calc" id="cInfo">Total: $0</div>
+      <button class="b full" type="submit">Registrar compra</button>
+    </form>
+    <p class="hint">El costo del producto se ajusta al <b>promedio</b> entre lo que tenías y lo nuevo.</p>
+  </div>
+  <div class="card"><h2>Compras recientes</h2><div class="list" id="cList"></div></div>
+</section>
+
+<!-- GASTOS -->
+<section id="t-gastos" class="hide">
+  <div class="card">
+    <h2>🧾 Registrar gasto</h2>
+    <form class="f" id="gForm">
+      <div class="full"><label>Concepto *</label><input id="gCon" list="gcats" required placeholder="Ej: Envío, bolsas, publicidad"><datalist id="gcats"><option>Envío</option><option>Empaques / bolsas</option><option>Publicidad</option><option>Transporte</option><option>Comisión de pago</option></datalist></div>
+      <div><label>Valor *</label><input id="gVal" type="number" inputmode="decimal" min="0" step="any" required></div>
+      <div><label>Fecha</label><input id="gFec" type="date" required></div>
+      <div class="full"><label>Nota</label><input id="gNot"></div>
+      <button class="b full" type="submit">Registrar gasto</button>
+    </form>
+    <p class="hint">Lo que no es mercancía (envíos, empaques, publicidad). Se resta para sacar la <b>ganancia neta</b>.</p>
+  </div>
+  <div class="card"><h2>Gastos recientes</h2><div class="list" id="gList"></div></div>
+</section>
+
+<!-- DATOS -->
+<section id="t-datos" class="hide">
+  <div class="card">
+    <h2>🏷️ Nombre de la tienda</h2>
+    <div class="row"><input id="nomIn" placeholder="Ej: Detallitos de Laura" style="flex:1"><button class="b" onclick="guardarNombre($('nomIn').value)">Guardar</button></div>
+  </div>
+  <div class="card">
+    <h2>📱 Dónde se guardan tus datos</h2>
+    <p id="dondeTxt" style="margin:0"></p>
+  </div>
+  <div class="card">
+    <h2>💾 Copia de seguridad</h2>
+    <p style="margin:0 0 10px">Descarga una copia de vez en cuando y súbela a Drive o mándatela por WhatsApp. Sirve para recuperar todo si algo pasa.</p>
+    <div class="row">
+      <button class="b k" onclick="exportBackup(true)">📤 Enviar copia (Drive / WhatsApp)</button>
+      <button class="b" onclick="exportBackup(false)">⬇️ Descargar copia</button>
+      <label class="b g" style="color:#fff;margin:0">Restaurar copia<input type="file" accept=".json,application/json" class="hide" onchange="importBackup(this)"></label>
+    </div>
+    <p class="hint" id="lastBk"></p>
+  </div>
+  <div class="card">
+    <h2>📊 Exportar a Excel</h2>
+    <p class="hint" style="margin:0 0 10px">Archivos .csv que abren en Excel o Google Sheets.</p>
+    <div class="row">
+      <button class="b" onclick="exportCSV('productos')">Inventario</button>
+      <button class="b" onclick="exportCSV('ventas')">Ventas</button>
+      <button class="b" onclick="exportCSV('compras')">Compras</button>
+      <button class="b" onclick="exportCSV('gastos')">Gastos</button>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Zona de peligro</h2>
+    <button class="b r" onclick="borrarTodo()">Borrar todos los datos</button>
+  </div>
+</section>
+</main>
+
+<button class="fab" id="fab" onclick="go('ventas');setTimeout(()=>$('vPro').focus(),50)">+ Vender</button>
+
+<nav id="nav">
+  <button data-t="resumen" class="on"><b>📊</b>Resumen</button>
+  <button data-t="ventas"><b>💵</b>Vender</button>
+  <button data-t="productos"><b>📦</b>Productos</button>
+  <button data-t="compras"><b>🛒</b>Compras</button>
+  <button data-t="gastos"><b>🧾</b>Gastos</button>
+</nav>
+
+<div id="modal" class="hide"><div class="box"><p id="mMsg"></p><input id="mIn" class="hide" style="margin-bottom:12px"><div class="row" style="justify-content:flex-end"><button class="b g" id="mNo">Cancelar</button><button class="b" id="mOk">Aceptar</button></div></div></div>
+<div id="toast" class="hide"></div>
+
+<script>
+// ================= Utilidades =================
+const $=id=>document.getElementById(id);
+const COLS=['productos','compras','ventas','gastos'];
+const newId=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const money=n=>'$'+Math.round(n||0).toLocaleString('es-CO');
+const pct=n=>isFinite(n)?(n*100).toFixed(1)+'%':'—';
+const today=()=>{const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,10)};
+const fDate=f=>{const[y,m,d]=f.split('-');return `${d}/${m}/${y.slice(2)}`};
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const margen=(c,p)=>p>0?(p-c)/p:NaN;
+let toastT;function toast(m){const t=$('toast');t.textContent=m;t.classList.remove('hide');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.add('hide'),2600)}
+function ask(msg,{input=null,ok='Aceptar',danger=false}={}){return new Promise(res=>{
+  $('mMsg').textContent=msg;const i=$('mIn');i.classList.toggle('hide',input===null);if(input!==null)i.value=input;
+  $('mOk').textContent=ok;$('mOk').className='b'+(danger?' r':'');$('modal').classList.remove('hide');
+  const close=v=>{$('modal').classList.add('hide');$('mOk').onclick=$('mNo').onclick=null;res(v)};
+  $('mOk').onclick=()=>close(input!==null?i.value:true);$('mNo').onclick=()=>close(input!==null?null:false);
+  if(input!==null)setTimeout(()=>i.focus(),50)})}
+
+// ================= Almacenamiento =================
+// Nube: base de datos de la página (privada por usuario). Respaldo: localStorage del dispositivo.
+const LKEY='inv_movil_v1';
+let D={productos:[],compras:[],ventas:[],gastos:[],meta:{}};
+let base=null;          // referencia al documento del usuario en la nube
+let modo='cargando';
+function lsGet(){try{return JSON.parse(localStorage.getItem(LKEY))}catch(e){return null}}
+function lsSet(){try{localStorage.setItem(LKEY,JSON.stringify(D))}catch(e){}}
+{const c=lsGet();if(c&&c.productos)D={...D,...c}}
+const prod=id=>D.productos.find(p=>p.id===id);
+const clean=o=>{const r={...o};delete r.id;return r};
+async function retry(fn){try{return await fn()}catch(e){if(e&&e.code==='unavailable'){await new Promise(r=>setTimeout(r,600+Math.random()*800));return fn()}throw e}}
+function errMsg(e){if(e&&e.code==='quota_exceeded')return 'Se llenó el espacio de la nube. Descarga una copia y avísale a quien te armó la app.';return 'No se pudo guardar en la nube. Revisa tu conexión.'}
+
+async function put(col,obj){
+  const i=D[col].findIndex(x=>x.id===obj.id);if(i>=0)D[col][i]=obj;else D[col].push(obj);
+  lsSet();render();
+  if(base){try{await retry(()=>base.collection(col).doc(obj.id).set(clean(obj)))}catch(e){toast(errMsg(e));throw e}}
+}
+async function del(col,id){
+  D[col]=D[col].filter(x=>x.id!==id);lsSet();render();
+  if(base){try{await retry(()=>base.collection(col).doc(id).delete())}catch(e){toast(errMsg(e));throw e}}
+}
+async function putMeta(m){D.meta={...D.meta,...m};lsSet();if(base){try{await retry(()=>base.set(D.meta))}catch(e){}}}
+
+async function conectar(){
+  try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
+  modoLocal();return;
+  let db,user;
+  try{[db,user]=await Promise.all([claude.use('db'),claude.use('user')])}catch(e){}
+  const uid=user?await user.id():null;
+  if(!db||!uid){modoLocal();return}
+  base=db.doc('data/users/'+uid+'/inventario');
+  const pend=new Set([...COLS,'meta']);
+  const timer=setTimeout(()=>{if(pend.size)setEstado('⚠️ Sin conexión: mostrando lo último guardado en el celular')},10000);
+  const listo=k=>{pend.delete(k);if(!pend.size){clearTimeout(timer);modo='nube';setEstado('☁️ Guardado en tu cuenta')}};
+  COLS.forEach(col=>base.collection(col).onSnapshot(snap=>{
+      D[col]=snap.docs.map(d=>({...d.data(),id:d.id}));lsSet();render();if(!snap.metadata.fromCache)listo(col)},
+    e=>{clearTimeout(timer);setEstado('⚠️ Error con la nube: '+(e.code||''))}));
+  base.onSnapshot(s=>{if(s.exists)D.meta={...s.data()};render();if(!s.metadata.fromCache)listo('meta')},()=>{});
+}
+function modoLocal(){modo='local';setEstado('📱 Guardado en este celular');render()}
+function setEstado(t){$('estado').textContent=t;
+  $('dondeTxt').innerHTML=modo==='nube'?'Tus datos se guardan en tu cuenta de Claude, no en el navegador. Aunque borres el historial o cambies de celular, al abrir este mismo link con tu cuenta vuelven a aparecer.'
+   :modo==='local'?'Tus datos se guardan en este celular. <b>Si borras los datos de navegación de Chrome (cookies y datos de sitios) se borran.</b> Por eso guarda una copia cada semana en Google Drive o WhatsApp con el botón de abajo.':'Conectando…'}
+
+// ================= Navegación =================
+function go(t){document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
+  document.querySelectorAll('main>section').forEach(s=>s.classList.toggle('hide',s.id!=='t-'+t));
+  $('fab').classList.toggle('hide',t==='ventas');scrollTo(0,0)}
+$('nav').onclick=e=>{const b=e.target.closest('button');if(b)go(b.dataset.t)};
+let periodo='mes';
+$('perChips').onclick=e=>{const b=e.target.closest('button');if(!b)return;periodo=b.dataset.p;
+  document.querySelectorAll('#perChips button').forEach(x=>x.classList.toggle('on',x===b));renderResumen()};
+
+// ================= Productos =================
+function calcPMar(){const c=+$('pCos').value,p=+$('pPre').value;
+  $('pMar').innerHTML=p?`Margen: <b class="${margen(c,p)<0?'neg':'pos'}">${pct(margen(c,p))}</b> · ganas <b>${money(p-c)}</b> por unidad`:'Escribe costo y precio para ver el margen.'}
+$('pCos').oninput=$('pPre').oninput=calcPMar;
+$('pForm').onsubmit=async e=>{e.preventDefault();const id=$('pId').value;
+  const o={nombre:$('pNom').value.trim(),categoria:$('pCat').value.trim(),costo:+$('pCos').value,precio:+$('pPre').value,minimo:+$('pMin').value||0};
+  const p=id?{...prod(id),...o}:{id:newId(),...o,stock:+$('pStk').value||0,creado:today()};
+  resetP();try{await put('productos',p);toast('Producto guardado ✔')}catch(e){}};
+function resetP(){$('pForm').reset();$('pId').value='';$('pTitle').textContent='Nuevo producto';$('pStk').disabled=false;$('pStkL').textContent='Stock inicial';calcPMar()}
+function editP(id){const p=prod(id);go('productos');$('pId').value=id;$('pNom').value=p.nombre;$('pCat').value=p.categoria||'';$('pCos').value=Math.round(p.costo*100)/100;$('pPre').value=p.precio;
+  $('pStk').value=p.stock;$('pStk').disabled=true;$('pStkL').textContent='Stock (usa Ajustar)';$('pMin').value=p.minimo;$('pTitle').textContent='Editar: '+p.nombre;calcPMar()}
+async function ajustarStock(id){const p=prod(id);const v=await ask(`Conteo físico de "${p.nombre}".\nStock actual en la app: ${p.stock}`,{input:String(p.stock),ok:'Guardar'});
+  if(v===null||v===''||isNaN(v))return;await put('productos',{...p,stock:Math.max(0,parseInt(v))}).catch(()=>{})}
+async function delP(id){const p=prod(id);const mov=D.ventas.some(v=>v.pid===id)||D.compras.some(c=>c.pid===id);
+  if(!await ask(mov?`"${p.nombre}" tiene ventas o compras. El historial se conserva, pero el producto se borra. ¿Continuar?`:`¿Borrar "${p.nombre}"?`,{ok:'Borrar',danger:true}))return;
+  await del('productos',id).catch(()=>{})}
+function renderProductos(){const q=$('pBus').value.toLowerCase();
+  const L=D.productos.filter(p=>(p.nombre+' '+(p.categoria||'')).toLowerCase().includes(q)).sort((a,b)=>a.nombre.localeCompare(b.nombre));
+  $('pList').innerHTML=L.map(p=>{const m=margen(p.costo,p.precio);const low=p.stock<=p.minimo;
+    return `<div class="it" style="align-items:flex-start"><div class="av">${esc(p.nombre.trim()[0]||'?').toUpperCase()}</div><div class="m"><div class="t">${esc(p.nombre)}</div>
+      <div class="s">Costo ${money(p.costo)} → Venta ${money(p.precio)} · <span class="${m<0?'neg':m<.2?'wrn':'pos'}">${pct(m)}</span></div>
+      <div class="s">Stock: <b>${p.stock}</b> ${low?'<span class="tag">bajo</span>':''} · invertido ${money(p.stock*p.costo)}</div>
+      <div class="row" style="margin-top:6px"><button class="x" onclick="editP('${p.id}')">✏️ Editar</button><button class="x" onclick="ajustarStock('${p.id}')">🔢 Ajustar stock</button><button class="x" onclick="delP('${p.id}')">🗑</button></div></div></div>`}).join('')
+    ||'<div class="empty"><b>📦</b>Aún no hay productos.<br>Crea el primero arriba.</div>';
+  $('cats').innerHTML=[...new Set(D.productos.map(p=>p.categoria).filter(Boolean))].map(c=>`<option>${esc(c)}</option>`).join('')}
+
+// ================= Compras =================
+const calcC=()=>$('cInfo').textContent='Total: '+money((+$('cCan').value||0)*(+$('cCos').value||0));
+$('cCan').oninput=$('cCos').oninput=calcC;
+$('cPro').onchange=()=>{const p=prod($('cPro').value);if(p)$('cCos').value=Math.round(p.costo*100)/100;calcC()};
+$('cForm').onsubmit=async e=>{e.preventDefault();const p=prod($('cPro').value);if(!p)return;
+  const q=+$('cCan').value,c=+$('cCos').value,tot=p.stock+q;
+  const np={...p,stock:tot,costo:tot>0?(p.stock*p.costo+q*c)/tot:c};
+  const compra={id:newId(),fecha:$('cFec').value,pid:p.id,nombre:p.nombre,cantidad:q,costo:c,total:q*c,nota:$('cNot').value};
+  $('cForm').reset();$('cFec').value=today();calcC();
+  try{await put('productos',np);await put('compras',compra);toast('Compra registrada ✔')}catch(e){}};
+async function delC(id){const c=D.compras.find(x=>x.id===id);
+  if(!await ask(`¿Anular esta compra?\nSe descontarán ${c.cantidad} unidades del stock.`,{ok:'Anular',danger:true}))return;
+  const p=prod(c.pid);try{if(p)await put('productos',{...p,stock:Math.max(0,p.stock-c.cantidad)});await del('compras',id)}catch(e){}}
+
+// ================= Ventas =================
+function calcV(){const p=prod($('vPro').value);if(!p){$('vGan').textContent='Elige un producto.';return}
+  const q=+$('vCan').value||0,pr=+$('vPre').value||0,g=(pr-p.costo)*q;
+  $('vGan').innerHTML=`Cobras <b>${money(pr*q)}</b> · ganas <b class="${g<0?'neg':'pos'}">${money(g)}</b> (${pct(margen(p.costo,pr))})<br><span class="hint">Quedan ${p.stock} en stock</span>`}
+$('vPro').onchange=()=>{const p=prod($('vPro').value);if(p)$('vPre').value=p.precio;calcV()};
+$('vCan').oninput=$('vPre').oninput=calcV;
+$('vForm').onsubmit=async e=>{e.preventDefault();const p=prod($('vPro').value);if(!p)return;const q=+$('vCan').value,pr=+$('vPre').value;
+  if(q>p.stock&&!await ask(`Solo tienes ${p.stock} de "${p.nombre}" en stock. ¿Registrar la venta de todos modos?`,{ok:'Registrar'}))return;
+  const venta={id:newId(),fecha:$('vFec').value,pid:p.id,nombre:p.nombre,cantidad:q,precio:pr,costo:p.costo,total:q*pr,ganancia:q*(pr-p.costo),nota:$('vNot').value};
+  $('vForm').reset();$('vFec').value=today();$('vCan').value=1;calcV();
+  try{await put('productos',{...p,stock:Math.max(0,p.stock-q)});await put('ventas',venta);toast(`Venta registrada ✔ Ganaste ${money(venta.ganancia)}`)}catch(e){}};
+async function delV(id){const v=D.ventas.find(x=>x.id===id);
+  if(!await ask(`¿Anular esta venta?\nSe devolverán ${v.cantidad} unidades al stock.`,{ok:'Anular',danger:true}))return;
+  const p=prod(v.pid);try{if(p)await put('productos',{...p,stock:p.stock+v.cantidad});await del('ventas',id)}catch(e){}}
+
+// ================= Gastos =================
+$('gForm').onsubmit=async e=>{e.preventDefault();
+  const g={id:newId(),fecha:$('gFec').value,concepto:$('gCon').value.trim(),valor:+$('gVal').value,nota:$('gNot').value};
+  $('gForm').reset();$('gFec').value=today();try{await put('gastos',g);toast('Gasto registrado ✔')}catch(e){}};
+async function delG(id){if(!await ask('¿Borrar este gasto?',{ok:'Borrar',danger:true}))return;await del('gastos',id).catch(()=>{})}
+
+// ================= Resumen =================
+function enPeriodo(f){if(periodo==='todo')return true;if(periodo==='hoy')return f===today();const d=new Date(f+'T00:00'),n=new Date();
+  if(periodo==='anio')return d.getFullYear()===n.getFullYear();
+  if(periodo==='mes')return d.getFullYear()===n.getFullYear()&&d.getMonth()===n.getMonth();
+  const a=new Date(n.getFullYear(),n.getMonth()-1,1);return d.getFullYear()===a.getFullYear()&&d.getMonth()===a.getMonth()}
+function renderResumen(){
+  const V=D.ventas.filter(v=>enPeriodo(v.fecha)),C=D.compras.filter(c=>enPeriodo(c.fecha)),G=D.gastos.filter(g=>enPeriodo(g.fecha));
+  const ing=V.reduce((s,v)=>s+v.total,0),gb=V.reduce((s,v)=>s+v.ganancia,0),gas=G.reduce((s,g)=>s+g.valor,0),comp=C.reduce((s,c)=>s+c.total,0);
+  const inv=D.productos.reduce((s,p)=>s+p.stock*p.costo,0),pot=D.productos.reduce((s,p)=>s+p.stock*p.precio,0),uds=V.reduce((s,v)=>s+v.cantidad,0);
+  const neta=gb-gas;
+  $('kpis').innerHTML=`<div class="kpi big"><div class="l">Ganancia neta</div><div class="v ${neta<0?'neg':'pos'}">${money(neta)}</div><div class="l" style="margin-top:4px">ganancia de ventas ${money(gb)} − gastos ${money(gas)}</div></div>`+
+   [['Ventas',money(ing),''],['Margen promedio',pct(ing?gb/ing:NaN),''],['Unidades vendidas',uds,''],['Compras mercancía',money(comp),''],
+    ['Inventario (costo)',money(inv),''],['Ganancia por vender',money(pot-inv),'pos']].map(([l,v,c])=>`<div class="kpi"><div class="l">${l}</div><div class="v ${c}">${v}</div></div>`).join('');
+  const agg={};V.forEach(v=>{const a=agg[v.pid]||(agg[v.pid]={n:v.nombre,q:0,t:0,g:0});a.q+=v.cantidad;a.t+=v.total;a.g+=v.ganancia});
+  const top=Object.values(agg).sort((a,b)=>b.g-a.g).slice(0,10);const mx=Math.max(1,...top.map(t=>t.g));
+  $('topList').innerHTML=top.map(t=>`<div class="it"><div class="m"><div class="t">${esc(t.n)}</div><div class="s">${t.q} vendidos · ${money(t.t)} · margen ${pct(t.g/t.t)}</div><div class="bar"><i style="width:${Math.max(0,t.g/mx*100)}%"></i></div></div><div class="r pos">${money(t.g)}</div></div>`).join('')||'<div class="empty"><b>💜</b>Sin ventas en este periodo.</div>';
+  const low=D.productos.filter(p=>p.stock<=p.minimo).sort((a,b)=>a.stock-b.stock);
+  $('lowList').innerHTML=low.map(p=>`<div class="it"><div class="m"><div class="t">${esc(p.nombre)}</div><div class="s">Aviso en ${p.minimo}</div></div><div class="r neg">${p.stock} und</div></div>`).join('')||'<div class="empty"><b>✨</b>Todo con buen stock.</div>'}
+
+// ================= Historiales =================
+const byDate=(a,b)=>b.fecha.localeCompare(a.fecha)||(b.id>a.id?1:-1);
+function renderHist(){
+  $('vList').innerHTML=[...D.ventas].sort(byDate).slice(0,150).map(v=>`<div class="it"><div class="av">${esc(v.nombre.trim()[0]||'?').toUpperCase()}</div><div class="m"><div class="t">${esc(v.nombre)}</div><div class="s">${fDate(v.fecha)} · ${v.cantidad} × ${money(v.precio)}${v.nota?' · '+esc(v.nota):''}</div></div><div class="r">${money(v.total)}<small class="${v.ganancia<0?'neg':'pos'}">+${money(v.ganancia)}</small></div><button class="x" onclick="delV('${v.id}')">✕</button></div>`).join('')||'<div class="empty"><b>💵</b>Sin ventas todavía.</div>';
+  $('cList').innerHTML=[...D.compras].sort(byDate).slice(0,150).map(c=>`<div class="it"><div class="m"><div class="t">${esc(c.nombre)}</div><div class="s">${fDate(c.fecha)} · ${c.cantidad} × ${money(c.costo)}${c.nota?' · '+esc(c.nota):''}</div></div><div class="r">${money(c.total)}</div><button class="x" onclick="delC('${c.id}')">✕</button></div>`).join('')||'<div class="empty"><b>🛒</b>Sin compras todavía.</div>';
+  $('gList').innerHTML=[...D.gastos].sort(byDate).slice(0,150).map(g=>`<div class="it"><div class="m"><div class="t">${esc(g.concepto)}</div><div class="s">${fDate(g.fecha)}${g.nota?' · '+esc(g.nota):''}</div></div><div class="r neg">${money(g.valor)}</div><button class="x" onclick="delG('${g.id}')">✕</button></div>`).join('')||'<div class="empty"><b>🧾</b>Sin gastos todavía.</div>'}
+
+function saludo(){const h=new Date().getHours();return h<12?'Buenos días':h<19?'Buenas tardes':'Buenas noches'}
+async function guardarNombre(v){v=(v||'').trim();if(!v)return;await putMeta({tienda:v});render();toast('Nombre guardado ✔')}
+async function editNombre(){const v=await ask('Nombre de la tienda',{input:D.meta.tienda||'',ok:'Guardar'});if(v!==null)guardarNombre(v)}
+function render(){
+  const nom=D.meta.tienda||'Mi Tienda';$('tienda').textContent=nom;document.title=nom;
+  if(document.activeElement!==$('nomIn'))$('nomIn').value=D.meta.tienda||'';
+  $('hello').textContent=`${saludo()} 💜 · ${new Date().toLocaleDateString('es-CO',{weekday:'long',day:'numeric',month:'long'})}`;
+  const opts=[...D.productos].sort((a,b)=>a.nombre.localeCompare(b.nombre)).map(p=>`<option value="${p.id}">${esc(p.nombre)} (${p.stock})</option>`).join('');
+  const cv=$('cPro').value,vv=$('vPro').value;
+  $('cPro').innerHTML=$('vPro').innerHTML='<option value="">— Selecciona —</option>'+opts;$('cPro').value=cv;$('vPro').value=vv;
+  renderResumen();renderProductos();renderHist();checkBackup()}
+
+// ================= Copias y exportación =================
+async function guardarArchivo(filename,data,compartir=false){
+  const type=filename.endsWith('.json')?'application/json':'text/csv';
+  if(compartir){try{const f=new File([data],filename,{type});
+    if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:filename});return true}}
+    catch(e){if(e&&e.name==='AbortError')return false}}
+  try{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type}));a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),2000);return true}
+  catch(e){toast('No se pudo descargar');return false}}
+async function exportBackup(compartir=false){const data={app:'inventario',version:1,fecha:new Date().toISOString(),productos:D.productos,compras:D.compras,ventas:D.ventas,gastos:D.gastos};
+  if(await guardarArchivo(`inventario_copia_${today()}.json`,JSON.stringify(data),compartir)){await putMeta({lastBackup:new Date().toISOString()});checkBackup();toast('Copia descargada ✔')}}
+function importBackup(inp){const f=inp.files[0];inp.value='';if(!f)return;const r=new FileReader();r.onload=async()=>{let d;
+  try{d=JSON.parse(r.result);if(!Array.isArray(d.productos)||!Array.isArray(d.ventas))throw 0}catch(e){toast('Ese archivo no es una copia válida');return}
+  if(!await ask(`La copia tiene ${d.productos.length} productos y ${d.ventas.length} ventas.\nEsto REEMPLAZA todo lo que hay ahora. ¿Continuar?`,{ok:'Restaurar',danger:true}))return;
+  await reemplazarTodo({productos:d.productos||[],compras:d.compras||[],ventas:d.ventas||[],gastos:d.gastos||[]});toast('Copia restaurada ✔')};r.readAsText(f)}
+async function reemplazarTodo(N){
+  setEstado('⏳ Guardando…');
+  for(const col of COLS){
+    const nuevos=N[col].map(x=>({...x,id:x.id||newId()}));
+    const viejos=D[col].filter(x=>!nuevos.some(n=>n.id===x.id));
+    D[col]=nuevos;lsSet();render();
+    if(base){for(const v of viejos){await retry(()=>base.collection(col).doc(v.id).delete()).catch(()=>{})}
+      for(const n of nuevos){await retry(()=>base.collection(col).doc(n.id).set(clean(n))).catch(e=>toast(errMsg(e)))}}}
+  setEstado(modo==='nube'?'☁️ Guardado en tu cuenta':modo==='local'?'📱 Guardado en este celular':'Conectando…')}
+function checkBackup(){const has=D.productos.length+D.ventas.length>0;const lb=D.meta.lastBackup?new Date(D.meta.lastBackup):null;
+  const dias=lb?Math.floor((Date.now()-lb)/864e5):null;
+  $('lastBk').textContent=lb?`Última copia: ${lb.toLocaleDateString('es-CO')} (hace ${dias} día${dias===1?'':'s'})`:'Todavía no has descargado ninguna copia.';
+  const lim=modo==='nube'?30:7;const show=has&&(dias===null||dias>=lim);
+  $('backupAlert').classList.toggle('hide',!show);
+  if(show)$('backupAlert').innerHTML=`💾 ${lb?`Hace ${dias} días no descargas`:'Aún no has descargado'} una copia de seguridad.<br><button class="b k" onclick="exportBackup(true)">Guardar copia ahora</button>`}
+function exportCSV(t){const cols={
+  productos:[['Producto','nombre'],['Categoría','categoria'],['Costo','costo'],['Precio','precio'],['Ganancia/u',p=>p.precio-p.costo],['Margen %',p=>p.precio?((p.precio-p.costo)/p.precio*100):''],['Stock','stock'],['Invertido',p=>p.stock*p.costo]],
+  ventas:[['Fecha','fecha'],['Producto','nombre'],['Cantidad','cantidad'],['Precio u.','precio'],['Costo u.','costo'],['Total','total'],['Ganancia','ganancia'],['Nota','nota']],
+  compras:[['Fecha','fecha'],['Producto','nombre'],['Cantidad','cantidad'],['Costo u.','costo'],['Total','total'],['Nota','nota']],
+  gastos:[['Fecha','fecha'],['Concepto','concepto'],['Valor','valor'],['Nota','nota']]}[t];
+  const val=(r,k)=>{let v=typeof k==='function'?k(r):r[k];if(typeof v==='number')v=String(Math.round(v*100)/100).replace('.',',');return '"'+String(v??'').replace(/"/g,'""')+'"'};
+  const rows=t==='productos'?D[t]:[...D[t]].sort((a,b)=>a.fecha.localeCompare(b.fecha));
+  const csv='﻿'+cols.map(c=>c[0]).join(';')+'\n'+rows.map(r=>cols.map(c=>val(r,c[1])).join(';')).join('\n');
+  guardarArchivo(`${t}_${today()}.csv`,csv)}
+async function borrarTodo(){if(!await ask('¿Borrar TODOS los datos? Descarga una copia antes.',{ok:'Sí, borrar',danger:true}))return;
+  const v=await ask('Escribe BORRAR para confirmar',{input:'',ok:'Borrar',danger:true});if(v!=='BORRAR')return;
+  await reemplazarTodo({productos:[],compras:[],ventas:[],gastos:[]});toast('Datos borrados')}
+
+// ================= Inicio =================
+['cFec','vFec','gFec'].forEach(i=>$(i).value=today());
+setEstado('Conectando…');render();conectar();
+</script>
+</body>
+</html>
